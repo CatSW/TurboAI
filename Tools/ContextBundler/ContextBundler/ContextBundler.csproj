@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ContextBundler</RootNamespace>
+    <AssemblyVersion>1.0</AssemblyVersion>
+    <FileVersion>1.0</FileVersion>
+    <Copyright>© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved. - Licensed under the MIT License</Copyright>
+    <PublishAot>True</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- T3.2: consente a ContextBundler.Tests di chiamare direttamente i servizi
+         internal (BundleGenerator, FileBlockBuilder, ecc.) senza invocare l'exe
+         come sottoprocesso. -->
+    <InternalsVisibleTo Include="ContextBundler.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+﻿<Project>
+    <!-- Percorso base degli artefatti: cartella 'artifacts' accanto alla solution -->
+    <PropertyGroup>
+        <!-- Radice dove verranno generati tutti gli output -->
+        <ArtifactsRoot>$(MSBuildThisFileDirectory)artifacts\</ArtifactsRoot>
+
+        <!-- Imposta la base output path (Visual Studio e msbuild la rispettano anche in Batch Build) -->
+        <BaseOutputPath>$(ArtifactsRoot)bin\$(MSBuildProjectName)\</BaseOutputPath>
+
+        <!-- Imposta il percorso intermedio (obj) nella cartella artifacts -->
+        <BaseIntermediateOutputPath>$(ArtifactsRoot)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+
+        <!-- Directory di pubblicazione -->
+        <PublishDir>$(ArtifactsRoot)publish\</PublishDir>
+
+        <!-- Manteniamo la struttura per configurazione/piattaforma -->
+        <!-- Risultato: artifacts\bin\<ProjectName>\<Configuration>\ -->
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    </PropertyGroup>
+
+    <!-- Facoltativo: centralizza anche il percorso dei pacchetti NuGet generati -->
+    <PropertyGroup>
+        <PackageOutputPath>$(ArtifactsRoot)packages\</PackageOutputPath>
+        <RepositoryPath Condition="'$(RepositoryPath)' == ''">$(NuGetPackageRoot)</RepositoryPath>
+        <RestorePackagesPath Condition="'$(RestorePackagesPath)' == ''">$(NuGetPackageRoot)</RestorePackagesPath>
+    </PropertyGroup>
+
+    <!-- Facoltativo: log di build (se compili da msbuild) -->
+    <!-- msbuild MySolution.sln /bl:artifacts\logs\build.binlog -->
+</Project>
+

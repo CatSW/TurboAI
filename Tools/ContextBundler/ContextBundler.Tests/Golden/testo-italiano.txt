@@ -1,0 +1,3 @@
+Prova di encoding: città, perché, più, così, però.
+Maiuscole: À È É Ì Ò Ù.
+Minuscole aggiuntive: è vero, cioè corretto.

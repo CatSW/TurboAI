@@ -1,0 +1,1 @@
+﻿File con BOM UTF-8 in testa, deve essere rilevato e rimosso.

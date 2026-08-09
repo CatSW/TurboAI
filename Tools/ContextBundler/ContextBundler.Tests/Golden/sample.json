@@ -1,0 +1,7 @@
+{
+  "name": "golden-test",
+  "value": 42,
+  "nested": {
+    "ok": true
+  }
+}

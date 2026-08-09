@@ -1,0 +1,22 @@
+# Default: trattiamo tutto come testo con normalizzazione
+* text=auto eol=crlf
+
+# Forza LF per markdown, json e python (py)
+*.md text eol=lf
+*.json text eol=lf
+*.py text eol=lf
+
+# .NET → Windows-friendly
+*.cs text eol=crlf
+*.config text eol=crlf
+*.ps1 text eol=crlf
+
+# Altri file comuni 
+*.props text eol=crlf
+*.targets text eol=crlf
+*.xml text eol=crlf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.txt text eol=crlf
+*.sln text eol=crlf
+*.slnx text eol=crlf

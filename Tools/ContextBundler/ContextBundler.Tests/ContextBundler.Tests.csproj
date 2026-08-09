@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ContextBundler.Tests</RootNamespace>
+    <Copyright>© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved. - Licensed under the MIT License</Copyright>
+
+    <!-- xUnit v3 gira su Microsoft.Testing.Platform; queste due proprieta'
+         abilitano sia "dotnet test" sia l'eseguibile standalone del progetto. -->
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ContextBundler\ContextBundler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Fixture golden copiate accanto al binario di test (bin/.../Golden/),
+         cosi' il test le trova via AppContext.BaseDirectory a prescindere
+         dalla working directory da cui viene lanciato. -->
+    <None Include="Golden\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

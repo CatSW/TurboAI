@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ContextBundler/ContextBundler.csproj" />
+  <Project Path="ContextBundler.Tests/ContextBundler.Tests.csproj" />
+</Solution>
