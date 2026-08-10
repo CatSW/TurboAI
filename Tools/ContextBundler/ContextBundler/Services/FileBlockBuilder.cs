@@ -54,7 +54,8 @@ internal static class FileBlockBuilder
                 var to = Math.Min(allLines.Length, r.End);
                 if (from != r.Start || to != r.End)
                     log($"Attenzione: range richiesto {r.Start}-{r.End} per {label} troncato a {from}-{to} (file di {allLines.Length} righe)");
-                if (from > to) continue; // fuori dai limiti del file, salto questo segmento
+                if (from > to)
+                    continue; // fuori dai limiti del file, salto questo segmento
                 clamped.Add((from, to));
             }
 
@@ -63,7 +64,7 @@ internal static class FileBlockBuilder
             foreach (var (from, to) in clamped)
             {
                 if (prev is (int pFrom, int pTo) && from > pTo + 1)
-                    pieces.Add($">>>> [righe {pTo + 1}-{from - 1} omesse] <<<<");
+                    pieces.Add($"]]]> [righe {pTo + 1}-{from - 1} omesse] [[[<");
                 pieces.Add(string.Join(Environment.NewLine, allLines.Skip(from - 1).Take(to - from + 1)));
                 prev = (from, to);
             }
@@ -77,6 +78,8 @@ internal static class FileBlockBuilder
             content = fullText;
         }
 
+        content = EscapeAngleBrackets(content);
+
         SecretScanner.Scan(label, content, warnings);
 
         if (EncodingDiagnostics.HasMojibake(content))
@@ -88,7 +91,7 @@ internal static class FileBlockBuilder
         // T2.2: validazione JSON prima/dopo l'inclusione nel bundle, solo per file
         // .json. "Prima" e' il testo sorgente cosi' come letto dal file (fullText);
         // "dopo" e' esattamente il contenuto che finira' tra i delimitatori
-        // <<<FILE ...>>> / <<<END FILE>>> (content, identico a quanto usato per
+        // [[[FILE ...]]] / [[[END FILE]]] (content, identico a quanto usato per
         // l'hash subito sotto).
         string? jsonParseBefore = null;
         string? jsonParseAfter = null;
@@ -120,11 +123,11 @@ internal static class FileBlockBuilder
             : "";
 
         var fileBlock = new StringBuilder();
-        fileBlock.Append($"<<<FILE path=\"{pathAttr}\" bytes=\"{contentBytes.Length}\" sha256=\"{sha256}\"{linesAttr}{jsonAttr}>>>");
+        fileBlock.Append($"[[[FILE path=\"{pathAttr}\" bytes=\"{contentBytes.Length}\" sha256=\"{sha256}\"{linesAttr}{jsonAttr}]]]");
         fileBlock.Append(Environment.NewLine);
         fileBlock.Append(content);
         fileBlock.Append(Environment.NewLine);
-        fileBlock.Append("<<<END FILE>>>");
+        fileBlock.Append("[[[END FILE]]]");
         fileBlock.Append(Environment.NewLine);
         fileBlock.Append(Environment.NewLine);
 
@@ -135,5 +138,23 @@ internal static class FileBlockBuilder
             ContentBytesLength = contentBytes.Length,
             HadBom = hasBom,
         };
+    }
+
+    private static string EscapeAngleBrackets(string text)
+    {
+        if (text.IndexOfAny(['<', '>']) < 0)
+            return text; // fast path: nessun carattere da escapare, zero allocazioni
+
+        var sb = new StringBuilder(text.Length + 16);
+        foreach (var c in text)
+        {
+            switch (c)
+            {
+                case '<': sb.Append("[LT]"); break;
+                case '>': sb.Append("[GT]"); break;
+                default: sb.Append(c); break;
+            }
+        }
+        return sb.ToString();
     }
 }

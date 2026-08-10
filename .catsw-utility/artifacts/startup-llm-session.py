@@ -96,7 +96,7 @@ def main() -> int:
     child_env["PYTHONIOENCODING"] = "utf-8"
 
     # --- 3. Latest Changelog section → .ai-context/info_Changelog.md ----
-    changelog_src = repo_root / "ContextBundler" / "Documentation" / "Changelog.md"
+    changelog_src = repo_root / "Tools" / "ContextBundler" / "ContextBundler" / "Documentation" / "Changelog.md"
     extract_changelog_script = find_script("extract-latest-changelog.py", artefacts_root)
     info_changelog_path = ai_context_dir / "info_Changelog.md"
 

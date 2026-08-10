@@ -23,9 +23,11 @@ internal static class BundleGenerator
         foreach (var rawEntry in entries)
         {
             var processed = FileBlockBuilder.Build(rootPath, rawEntry, warnings, log);
-            if (processed is null) continue; // missing o binario: gia' registrato in warnings
+            if (processed is null)
+                continue; // missing o binario: gia' registrato in warnings
 
-            if (processed.HadBom) bomFiles.Add(processed.Rel);
+            if (processed.HadBom)
+                bomFiles.Add(processed.Rel);
             fileBlocks.Append(processed.FileBlockText);
             totalBytes += processed.ContentBytesLength;
         }

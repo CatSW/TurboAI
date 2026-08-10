@@ -245,7 +245,7 @@ def run_with_polling() -> None:
 # Main
 # ---------------------------------------------------------------------------
 def main() -> int:
-    log.info("from-llm-watcher avviato (v1.2 - orchestratore unificato)")
+    log.info("from-llm-watcher avviato (v1.0 - orchestratore unificato)")
     log.info("Cartella monitorata : %s", DOWNLOADS)
     log.info("Cartella .catsw-utility: %s", CATSW_DIR)
     log.info("Cmd unificato       : %s", PROCESS_CMD.name)

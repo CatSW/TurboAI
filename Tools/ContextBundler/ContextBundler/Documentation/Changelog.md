@@ -14,6 +14,12 @@ updated: 2026-08-09
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
+## [1.1.0] - 2026-08-11
+
+### Changed
+- escaping dei caratteri < e > in [LT] e [GT] nei file XML
+- fence dei file con [[[ e ]]] per evitare che il parser di alcuni chat tools li interpreti come tag XML
+
 ## [1.0.0] - 2026-08-09
 
 ### Added

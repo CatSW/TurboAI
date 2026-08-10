@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.0
+# Version 1.1
 """
 Orchestratore unificato per artefatti LLM e context-request.
 
@@ -144,6 +144,21 @@ def archive_to_history(file_path: Path) -> Path:
 def run_context_bundler() -> int:
     if not CONTEXT_BUNDLER_EXE.exists():
         log(f"ERRORE: ContextBundler.exe non trovato in {CONTEXT_BUNDLER_EXE}")
+        return 1
+
+    # Eseguiamo move-to-history.py per archiviare i file residui della sessione precedente
+    move_script = ARTEFACTS_ROOT/ "move-to-history.py"
+    if move_script.exists():
+        log(f"==> Esecuzione di {move_script.name}...")
+        move_result = subprocess.run(
+            [sys.executable, str(move_script)],
+            cwd=str(ARTEFACTS_ROOT),
+            check=False
+        )
+        if move_result.returncode != 0:
+            log(f"==> Attenzione: {move_script.name} ha terminato con codice {move_result.returncode}")
+    else:
+        log(f"==> ERRORE: Script di archiviazione {move_script.name} non trovato")
         return 1
 
     log(f"==> Lancio ContextBundler: {CONTEXT_BUNDLER_EXE.name}")

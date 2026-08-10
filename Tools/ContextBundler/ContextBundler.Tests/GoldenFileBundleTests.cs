@@ -31,12 +31,13 @@ public class GoldenFileBundleTests
         "con-bom.txt",
         "control-sequence.md",
         "unclosed-fence.md",
+        "Sample.xml",
     ];
 
-    // <<<FILE path="..." bytes="123" sha256="...64 hex..." [attributi extra]>>>
-    // seguito da newline, contenuto, newline, <<<END FILE>>>
+    // [[[FILE path="..." bytes="123" sha256="...64 hex..." [attributi extra]]]]
+    // seguito da newline, contenuto, newline, [[[END FILE]]]
     private static readonly Regex FileBlockPattern = new(
-        "^<<<FILE path=\"(?<path>[^\"]+)\" bytes=\"(?<bytes>\\d+)\" sha256=\"(?<sha>[0-9a-f]{64})\"(?<attrs>[^>]*)>>>\r?\n(?<content>.*?)\r?\n<<<END FILE>>>",
+        """^\[\[\[FILE path=\"(?<path>[^\"]+)\" bytes=\"(?<bytes>\d+)\" sha256=\"(?<sha>[0-9a-f]{64})\"(?<attrs>[^\]]*)\]\]\]\r?\n(?<content>.*?)\r?\n\[\[\[END FILE\]\]\]""",
         RegexOptions.Multiline | RegexOptions.Singleline);
 
     private sealed record ParsedBlock(string Content, string DeclaredSha, long DeclaredBytes);
@@ -109,7 +110,26 @@ public class GoldenFileBundleTests
     [Fact]
     public void EncodingUtf8PreservaAccentateItaliane()
     {
-        var (_, blocks) = GenerateGolden();
+        var (result, blocks) = GenerateGolden();
+
+        // Diagnostic: if the block is missing, include warnings and bundle text
+        // in the test output to aid debugging of missing fixtures.
+        if (!blocks.ContainsKey("testo-italiano.txt"))
+        {
+            // Fail with helpful context
+            var warnings = new StringBuilder();
+            warnings.AppendLine("Missing block 'testo-italiano.txt'. Diagnostics:");
+            warnings.AppendLine("Warnings.Missing:");
+            foreach (var w in result.Warnings.Missing)
+                warnings.AppendLine(w);
+            warnings.AppendLine("Warnings.SkippedBinary:");
+            foreach (var w in result.Warnings.SkippedBinary)
+                warnings.AppendLine(w);
+            warnings.AppendLine("BundleText (truncated to 2000 chars):");
+            warnings.AppendLine(result.BundleText.Length <= 2000 ? result.BundleText : result.BundleText.Substring(0, 2000));
+            Assert.True(false, warnings.ToString());
+        }
+
         var content = blocks["testo-italiano.txt"].Content;
 
         foreach (var accentata in new[] { "è", "à", "ò", "ù", "ì", "É", "È" })
@@ -167,5 +187,14 @@ public class GoldenFileBundleTests
         Assert.Contains("# NewlineRepresentation:", header);
         Assert.Contains("# SourceBOM:", header);
         Assert.Contains("# LiteralControlSequences:", header);
+    }
+
+    [Fact]
+    public void XmlConCdataContenenteChiusuraSimilAlDelimitatoreNonVieneAlterato()
+    {
+        var (_, blocks) = GenerateGolden();
+        Assert.Contains(
+            "[LT]![CDATA[Testo con [LT]tag[GT] non interpretati e ]][GT] incluso qui.]][GT]",
+            blocks["Sample.xml"].Content);
     }
 }

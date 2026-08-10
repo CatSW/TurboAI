@@ -32,7 +32,13 @@
     <!-- Fixture golden copiate accanto al binario di test (bin/.../Golden/),
          cosi' il test le trova via AppContext.BaseDirectory a prescindere
          dalla working directory da cui viene lanciato. -->
-    <None Include="Golden\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Golden\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Golden\testo-italiano.txt">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
