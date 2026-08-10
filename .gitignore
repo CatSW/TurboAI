@@ -353,3 +353,6 @@ MigrationBackup/
 .ai-context/info_git.txt
 .ai-context/info_next_task.md
 
+# abilita gli artifacts dei tools di turbo-ai
+!.catsw-utility/artifacts/
+

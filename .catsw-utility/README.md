@@ -14,9 +14,10 @@ Guida rapida per l'utente all'uso degli strumenti presenti nella directory `.cat
 
 ## 0. Prerequisiti
 
-- Python v3.14.6 (o superiore consigliato)
-- rg (ripgrep) v15.1.0 (o superiore consigliato) llm è istruito per usarlo (installatelo)
+- Python v3.14.6 (o superiore - obbligatorio) - attenzione verificate che aprendo una cmd e digitando python aprira
+- git v2.54 (o superiore - obbligatorio) da cmd digitando `git --version` deve rispondervi
 - PowerShell 7.6.4 (o superiore consigliata)
+- rg (ripgrep) v15.1.0 (o superiore consigliato) llm è istruito per usarlo (consiglio di installarlo ma non è obbligatorio)
 
 Lettura consigliata [TurboAI](./docs/TurboAI.md)
 
