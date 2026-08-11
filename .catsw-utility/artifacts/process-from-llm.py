@@ -80,32 +80,33 @@ def log(msg: str) -> None:
 # ---------------------------------------------------------------------------
 # Pattern e sanitizzazione
 # ---------------------------------------------------------------------------
-# Categoria A: context-request-*.md
+# Categoria A: context-request-*.md (separatore dopo il prefisso tollerante a - _ spazio)
 RE_CONTEXT = re.compile(
-    r"(context-request-[^\"'<>|?*]+\.md)",
+    r"context-request[-_ ]+([^\"'<>|?*]+\.md)",
     re.IGNORECASE,
 )
 
-# Categoria B: FromLlm-*.{py|ps1|zip}
+# Categoria B: FromLlm-*.{py|ps1|zip} (stesso discorso sul separatore)
 RE_FROMLLM = re.compile(
-    r"(FromLlm-[^\"'<>|?*]+\.(?:py|ps1|zip))",
+    r"FromLlm[-_ ]+([^\"'<>|?*]+\.(?:py|ps1|zip))",
     re.IGNORECASE,
 )
 
 
 def sanitize_name(original_name: str) -> str | None:
     """
-    Estrae il nome canonico da un nome eventualmente adornato.
+    Estrae il nome canonico da un nome eventualmente adornato, normalizzando
+    il separatore dopo il prefisso (-, _, spazio) sempre al trattino canonico.
     Ritorna None se non riconosce nessun pattern valido.
     """
     # Prova prima FromLlm (più specifico sulle estensioni)
     m = RE_FROMLLM.search(original_name)
     if m:
-        return m.group(1)
+        return f"FromLlm-{m.group(1)}"
 
     m = RE_CONTEXT.search(original_name)
     if m:
-        return m.group(1)
+        return f"context-request-{m.group(1)}"
 
     return None
 
@@ -197,7 +198,7 @@ def run_process_zip_and_scripts() -> int:
 # ---------------------------------------------------------------------------
 def main() -> int:
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("=== process-from-llm v1.0 (Python) - orchestratore unificato ===")
+    log("=== process-from-llm v1.1 (Python) - orchestratore unificato ===")
     log(f"Esecuzione avviata: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"Solution Root : {SOLUTION_ROOT}")
     log(f"Utility Root  : {UTILITY_ROOT}")

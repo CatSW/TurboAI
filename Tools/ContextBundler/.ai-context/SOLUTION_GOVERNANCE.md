@@ -1,7 +1,8 @@
 # ContextBundler – Solution Governance
 
 ## Identity
-- Root: `C:\Repo\CatSW\TurboAI\Tools\ContextBundler`
+- Local root (session cwd, for `git -C ..`): `C:\Repo\CatSW\TurboAI\Tools\ContextBundler`
+- Git top-level (real repo root — verify with `git rev-parse --show-toplevel`): `C:\Repo\CatSW\TurboAI`
 - Solution: `ContextBundler.slnx`
 - Version: v1.0
 
@@ -17,16 +18,17 @@
   closes.
 
 ## Plan
-- File: 
-- Alias: 
+- File: Piano-Multi-Task.md
+- Alias: copilot365
 
 ## Commit Message Convention
-- Format: `[planalias-Mx-Ty...]` short description
+- Format: `[alias-Mx-Ty...]` short description
 - Example: `[phenix-M2-T2.3+T3.2-prep] M2 Closed + internal refactoring (T3.2-prep)`
 - Details of what changed are only in `ContextBundler/Documentation/Changelog.md`
 - Use `git log --oneline -5` to see recent progress
 
 ## Patch Rules (FromLlm-*.zip)
+- Zip paths are always relative to the Git top-level (see Identity), never to the local root
 - One zip → extract to root
 - Contains code/docs + single `FromLlm-*.py` under `.catsw-utility`
 - Script may: `git add` (patch paths only) + `git commit`

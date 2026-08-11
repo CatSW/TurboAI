@@ -8,11 +8,24 @@ solution: ContextBundler
 project: ContextBundler
 version: 1.0
 license: MIT
-updated: 2026-08-09
+updated: 2026-08-12
 ---
 # Changelog ContextBundler
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
+
+## [1.0.2] - 2026-08-12
+
+### Added
+
+- base64-to-file.py 1.0: converte da base64 a UTF8
+- file-to-base64.py 1.0: converte da UTF8 a base64
+- get-win-pos.ps1 1.0: utility per determinare posizione e dimensione finestra del terminale
+
+### Changed
+
+- from-llm-watcher.py 1.1: migliorata gestione file nominati in modo creativo tipo "Scarica il context-request T2.1.md" invece di "context-request-T2.1.md"
+- process-from-llm.py 1.1: migliorata gestione file nominati in modo creativo tipo "Scarica il context-request T2.1.md" invece di "context-request-T2.1.md"
 
 ## [1.0.1] - 2026-08-10
 
