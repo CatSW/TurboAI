@@ -14,7 +14,7 @@ namespace ContextBundler.Tests;
 ///
 /// Gli hash non sono hardcodati: vengono ricalcolati sul contenuto estratto
 /// dal bundle e confrontati con l'attributo sha256 dichiarato nel blocco
-/// &lt;&lt;&lt;FILE...&gt;&gt;&gt; — verifica equivalente ma non fragile a
+/// <<<FILE...>>> — verifica equivalente ma non fragile a
 /// piccole modifiche dei file fixture.</summary>
 public class GoldenFileBundleTests
 {
@@ -42,12 +42,20 @@ public class GoldenFileBundleTests
 
     private sealed record ParsedBlock(string Content, string DeclaredSha, long DeclaredBytes);
 
-    private static (BundleResult Result, Dictionary<string, ParsedBlock> Blocks) GenerateGolden()
+    private static (BundleResult Result, Dictionary<string, ParsedBlock> Blocks) GenerateGolden(bool toBase64 = false)
     {
-        var result = BundleGenerator.Generate(GoldenRoot, "golden-entries.md", [.. ExpectedEntries], _ => { });
+        var result = BundleGenerator.Generate(GoldenRoot, "golden-entries.md", [.. ExpectedEntries], _ => { }, toBase64);
+
+        // Se base64, i test che parlano di blocchi non possono parsare direttamente BundleText
+        var textForParsing = result.BundleText;
+        if (toBase64)
+        {
+            var bytes = Convert.FromBase64String(result.BundleText);
+            textForParsing = Encoding.UTF8.GetString(bytes);
+        }
 
         var blocks = new Dictionary<string, ParsedBlock>();
-        foreach (Match m in FileBlockPattern.Matches(result.BundleText))
+        foreach (Match m in FileBlockPattern.Matches(textForParsing))
         {
             blocks[m.Groups["path"].Value] = new ParsedBlock(
                 m.Groups["content"].Value,
@@ -116,7 +124,6 @@ public class GoldenFileBundleTests
         // in the test output to aid debugging of missing fixtures.
         if (!blocks.ContainsKey("testo-italiano.txt"))
         {
-            // Fail with helpful context
             var warnings = new StringBuilder();
             warnings.AppendLine("Missing block 'testo-italiano.txt'. Diagnostics:");
             warnings.AppendLine("Warnings.Missing:");
@@ -127,7 +134,7 @@ public class GoldenFileBundleTests
                 warnings.AppendLine(w);
             warnings.AppendLine("BundleText (truncated to 2000 chars):");
             warnings.AppendLine(result.BundleText.Length <= 2000 ? result.BundleText : result.BundleText.Substring(0, 2000));
-            Assert.True(false, warnings.ToString());
+            Assert.Fail(warnings.ToString());
         }
 
         var content = blocks["testo-italiano.txt"].Content;
@@ -196,5 +203,51 @@ public class GoldenFileBundleTests
         Assert.Contains(
             "<![CDATA[Testo con <tag> non interpretati e ]]> incluso qui.]]>",
             blocks["Sample.xml"].Content);
+    }
+
+    // ---------- T2.3: test opzione base64 ----------
+
+    [Fact]
+    public void SenzaBase64_ToBase64FalseETestoNormale()
+    {
+        var (result, _) = GenerateGolden(toBase64: false);
+
+        Assert.False(result.ToBase64);
+        Assert.StartsWith("# CONTEXT BUNDLE", result.BundleText);
+        Assert.Contains("<<<FILE path=", result.BundleText);
+    }
+
+    [Fact]
+    public void ConBase64_ToBase64TrueETestoEBase64Valido()
+    {
+        var (result, _) = GenerateGolden(toBase64: true);
+
+        Assert.True(result.ToBase64);
+
+        // deve essere base64 puro (caratteri validi + eventuale padding)
+        Assert.Matches(@"^[A-Za-z0-9+/]*={0,2}$", result.BundleText);
+        Assert.True(result.BundleText.Length % 4 == 0, "lunghezza base64 non multiplo di 4");
+
+        // non deve contenere testo in chiaro del bundle
+        Assert.DoesNotContain("# CONTEXT BUNDLE", result.BundleText);
+        Assert.DoesNotContain("<<<FILE", result.BundleText);
+    }
+
+    [Fact]
+    public void ConBase64_RoundTripDecodificaTornaBundleValido()
+    {
+        var (result, blocks) = GenerateGolden(toBase64: true);
+
+        var decodedBytes = Convert.FromBase64String(result.BundleText);
+        var decoded = Encoding.UTF8.GetString(decodedBytes);
+
+        Assert.StartsWith("# CONTEXT BUNDLE", decoded);
+        Assert.Contains("# MarkdownEscaping: none", decoded);
+        Assert.Contains("<<<FILE path=", decoded);
+        Assert.Contains("<<<END FILE>>>", decoded);
+
+        // i path golden devono essere recuperabili dopo il round-trip
+        foreach (var entry in ExpectedEntries)
+            Assert.True(blocks.ContainsKey(entry), $"Dopo decode manca blocco per {entry}");
     }
 }
