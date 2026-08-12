@@ -2,8 +2,8 @@
 title: skill-turbo-ai-tools-use-channel-a-plus-b
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 1.0
-updated: 2026-08-09
+version: 1.0.1
+updated: 2026-08-12
 description: Governs the interaction between Channel A (Operational Agent) and Channel B (Control Tower). Configures roles, token constraints, chat reports, and the Keep a Changelog 1.1.0 format for .NET 10 projects.
 ---
 
@@ -81,7 +81,7 @@ Session: a single PowerShell session in `<repo-root>\.catsw-utility`. No new win
 
 **2.1 Without a startup bundle** (no `context-out-start-session-*.md` attached):
 1. user opens/keeps 1 PowerShell in `.catsw-utility` (verify with `Get-Location` if needed);
-2. run `ListFiles.cmd`;
+2. run `list-files.cmd`;
 3. ask for `ls.txt`;
 4. analyze Git baseline, working tree, inventory;
 5. targeted `rg` if needed (paths relative to root via `..`);
@@ -89,12 +89,12 @@ Session: a single PowerShell session in `<repo-root>\.catsw-utility`. No new win
 
 **2.2 With a startup bundle** (`context-out-start-session-*.md` from `startup-llm-session.cmd`):
 - read it in full BEFORE asking for anything else;
-- `File: .catsw-utility/ls.txt` section present → `ListFiles.cmd` already run, do NOT request it again nor request `ls.txt` separately;
+- `File: .catsw-utility/ls.txt` section present → `list-files.cmd` already run, do NOT request it again nor request `ls.txt` separately;
 - from `ls.txt`: inventory, last commit, Git baseline, working tree;
 - read the skill/governance/context docs already included in the same bundle;
 - do NOT immediately generate a new context-request: first determine what's actually missing; request only the targeted discovery/rg/files/supplementary bundles actually needed.
 
-Repeat `ListFiles.cmd` ONLY IF: the `ls.txt` section is missing/incomplete/errored, OR the user reports the repo has changed, OR an intentional refresh of the repo snapshot is needed.
+Repeat `list-files.cmd` ONLY IF: the `ls.txt` section is missing/incomplete/errored, OR the user reports the repo has changed, OR an intentional refresh of the repo snapshot is needed.
 
 **2.3 Evaluating governance/context documents**
 

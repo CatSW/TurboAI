@@ -7,143 +7,74 @@ status: COMPLETED
 workflow: TDM 1.0
 ---
 
-# TurboAI - Piano multi-task rilascio
+# Piano Multi-Task: Evoluzione Tool `info_changelog` (Turbo AI)
 
 ## 1. Obiettivo
+Rendere dinamica la risoluzione del percorso di `CHANGELOG.md` in `StartUpLLMSession`, eliminando i path cablati. Supportare configurazioni mono-progetto e multi-progetto tramite `solution-govern` e l'estrazione dinamica da `.AI-Context`, applicando lo standard Keep a Changelog 1.1 e una logica di fallback a 3 livelli.
 
-Questo è solo un esempio di piano. estrapolato da `C:\Repo\CatSW\TurboAI\Lab\Tools\ContextBundler\.ai-context\`
-
-## 2. Decisioni vincolanti
-
-### 2.1 Delimitazione dei file nel bundle
-
-Ogni file incluso nel bundle è delimitato da marker espliciti di apertura e
-chiusura (non un singolo header `## File:`), riportanti path, lunghezza in
-byte e SHA-256 del contenuto sorgente. Il marker di chiusura è obbligatorio
-anche per l'ultimo file del bundle. Formato indicativo:
-
-```
-<<<FILE path="..." bytes="..." sha256="...">>>
-...contenuto...
-<<<END FILE>>>
-```
-
-### 2.2 Escaping e Markdown
-
-### 2.3 Encoding
-
-### 2.4 Preservazione dei caratteri di controllo
-
-### 2.5 Versionamento del formato
-
-### 2.6 Compatibilità e retrocompatibilità
-
-## 3. Scope
-
-### Incluso
-
-### Escluso
-
-## 4. Strategia TDM semplificata
-
-## 5. Milestone e task
-
-### M1 - Delimitazione, escaping ed encoding del bundle
-
-**Obiettivo:** il bundle prodotto da ContextBundler delimita ogni file in
-modo non ambiguo, non altera il Markdown/JSON sorgente e dichiara
-l'encoding usato.
-
-#### T1.1 - Delimitatori di file con hash e lunghezza
-
-- **Durata:** 2-3 ore
-- **Rischio:** R2 (tocca il core della serializzazione, ma è additivo)
-- **Canale:** B
-- **Attività:**
-  - sostituire il marker `## File:` con i delimitatori `<<<FILE ...>>>` /
-    `<<<END FILE>>>` (sezione 2.1);
-  - calcolare SHA-256 e byte-length del contenuto sorgente per ogni file
-    incluso;
-  - garantire una newline canonica prima e dopo ogni delimitatore, incluso
-    l'ultimo file del bundle.
-- **Criterio atteso:** un bundle su un set di file misti (md, json, cs, ps1)
-  non presenta più casi come l'Anomalia 5 (marker attaccato al contenuto
-  precedente).
-- **Verifiche:** confronto byte-a-byte tra hash dichiarato nel bundle e hash
-  ricalcolato sul sorgente originale, su almeno 5 file di test.
-
-#### T1.2 - Escaping Markdown dichiarativo (default: nessuno)
-
-#### T1.3 - Encoding UTF-8 esplicito e rilevamento mojibake
-
-
-### M2 - Fedeltà del contenuto (controllo caratteri, JSON, fence)
-
-### M3 - Versionamento del formato e test end-to-end
-
-### M4 - Timestamp post-estrazione ZIP (process-zip-and-scripts-from-llm)
-
-**Obiettivo:** una build eseguita dopo l'estrazione di una patch ZIP riflette
-sempre il sorgente appena estratto, non un assembly incrementale obsoleto
-(Anomalia 9). Milestone indipendente da M1-M3, scorporabile dal piano se si
-vuole trattarla separatamente.
+---
 
 <next_task>
+## 2. Requisiti di Implementazione
+
+### 2.1 Percorso del Changelog
+* **Convenzione Posizione:** `<Progetto>/documentation/CHANGELOG.md`.
+* **Progetti di Test:** Le modifiche e i test relativi a suite correlate (es. `Modulo.Tests`) vengono registrati direttamente nel changelog del progetto principale (`Modulo/documentation/CHANGELOG.md`).
+
+### 2.2 Routing e Progetto Target
+1. **Modalità Mono-Progetto:** 
+   * `solution-govern` contiene il parametro `TargetProject`.
+   * Il tool accede direttamente a `<TargetProject>/documentation/CHANGELOG.md`.
+2. **Modalità Multi-Progetto:**
+   * `solution-govern` indica la modalità multi-progetto (`MultiProject: true` o `TargetProject` non valorizzato).
+   * Il tool ricava il `TargetProject` dal **task attivo** specificato nel piano in `.AI-Context`.
+   * Il tool accede a `<TargetProject>/documentation/CHANGELOG.md`.
+
+### 2.3 Logica di Estrazione (Fallback a 3 Livelli)
+1. **Livello 1 (`[Unreleased]` con contenuti):** Se la sezione `## [Unreleased]` contiene modifiche, estrae quel frammento.
+2. **Livello 2 (`[Unreleased]` vuoto + Release Precedente presente):** Se `[Unreleased]` è vuoto ma esiste almeno una release precedente (es. `## [2.2.0]`), estrae il contenuto dell'ultima release indicando che `[Unreleased]` è vuoto.
+3. **Livello 3 (Changelog completamente vuoto / Nuovo Progetto):** Se non è presente né contenuto in `[Unreleased]` né alcuna release precedente, restituisce un messaggio standard: *"Nessun contenuto preesistente o release precedente trovata"*.
+
+---
+
+## 3. Struttura dei Test (Integrazione e Simulazione)
+
+I test del tool verranno eseguiti all'interno della cartella di test dei tool di Turbo AI tramite una struttura di soluzione simulata (mock).
+
+### 3.1 Scenario 1: Solution Multi-Progetto
+* **Ambiente Simulato:**
+  * Cartella `AI-Context/`: `solution-govern` con flag multi-progetto + piano con task attivo avente `TargetProject: ProgettoA`.
+  * Cartella `ProgettoA/documentation/CHANGELOG.md` (contenuto A).
+  * Cartella `ProgettoB/documentation/CHANGELOG.md` (contenuto B).
+* **Verifica:** Il tool deve estrarre correttamente il frammento da `ProgettoA/documentation/CHANGELOG.md`.
+
+### 3.2 Scenario 2: Solution Mono-Progetto
+* **Ambiente Simulato:**
+  * Cartella `AI-Context/`: `solution-govern` con `TargetProject: ProgettoUnico`.
+  * Cartella `ProgettoUnico/documentation/CHANGELOG.md`.
+* **Verifica:** Il tool ignora il contesto dei task e punta direttamente al changelog di `ProgettoUnico`.
+
+### 3.3 Scenario 3: Progetto Nuovo / Changelog Vuoto (Fallback Livello 3)
+* **Ambiente Simulato:**
+  * Changelog contenente solo la struttura base con `## [Unreleased]` vuota e nessuna release precedente.
+* **Verifica:** Il tool deve restituire il messaggio *"Nessun contenuto preesistente o release precedente trovata"*.
+
+### 3.4 Scenario 4: Sezione Unreleased Vuota con Release Precedente (Fallback Livello 2)
+* **Ambiente Simulato:**
+  * `## [Unreleased]` vuoto, seguito da `## [1.0.0]` con note di rilascio.
+* **Verifica:** Il tool deve estrarre la sezione `## [1.0.0]` segnalando che `[Unreleased]` non conteneva modifiche.
+
+---
+
+## 4. Checklist dei Task
+- [ ] Implementazione logica di parsing e routing nello script Python di `info_changelog`.
+- [ ] Creazione della struttura simulata di test (mock delle directory e dei file `.AI-Context`).
+- [ ] Esecuzione e validazione dei 4 scenari di test.
+- [ ] Integrazione con `StartUpLLMSession`.
+</next_task>
+
 #### T42 - Piano Completato
 
 - Guru Meditation
 - chiedere all'utente di creare un nuovo piano di esecuzione
-</next_task>
 
----
-
-## 6. Copertura minima obbligatoria
-
-Derivata dalle decisioni vincolanti della sezione 2:
-
-- percorso positivo: bundle su file misti (md, json, cs, py, ps1, txt con
-  accentate) prodotto senza anomalie rilevabili;
-- errori ad alto valore: file con fence sbilanciato, file JSON con
-  caratteri che potrebbero essere escaped, file con sequenze `\r`/`\n`
-  letterali;
-- compatibilità protetta: FromLlm-Unbundler.ps1 su un bundle in formato
-  precedente (prerelease v1.2) continua a funzionare finché non viene aggiornato in
-  un'iterazione successiva (verifica di non-regressione, non di supporto
-  al nuovo formato);
-- sicurezza e assenza di dati sensibili: non applicabile in modo specifico
-  a questo piano, nessuna nuova superficie di dati sensibili introdotta;
-- verifiche dell'artefatto reale: bundle generato realmente ispezionato
-  (non solo output di test unitari), su almeno un caso con tutti i tipi di
-  file coinvolti.
-
-## 7. Contratto esecutivo comune
-
-Ogni task esecutivo deve:
-
-1. verificare baseline e working tree;
-2. limitare la discovery ai file necessari;
-3. fermarsi su drift materiale;
-4. modificare solo lo scope autorizzato;
-5. aggiornare i test insieme al comportamento;
-6. eseguire verifiche proporzionate e non simulare output;
-7. riepilogare file, decisioni, comandi, esiti e residui;
-8. se eseguito sul Canale A, produrre run state e frammento Markdown
-   richiesti dal TDM senza commit né cleanup finale;
-9. lasciare a B1 review di milestone, append al log, cleanup e
-   autorizzazione al commit.
-
-## 8. Definition of Done
-
-L'iniziativa è chiudibile quando:
-
-- tutti i gate (M1-M4) sono superati;
-- ogni decisione vincolante della sezione 2 è coperta da un criterio
-  verificato;
-- la suite golden-file (T3.2) passa;
-- un bundle reale su ContextBundler (o solution equivalente) non
-  riproduce più le anomalie 1-8 osservate nel documento originale;
-- il caso reale di timestamp/build incrementale (Anomalia 9, M4) è
-  risolto o esplicitamente rimandato con motivazione;
-- i rischi residui sono espliciti (in particolare: anomalie introdotte nei
-  passaggi 3-5 della catena, fuori dal controllo di ContextBundler);
-- B1 assegna lo stato `VERIFIED`.
