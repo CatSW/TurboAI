@@ -34,10 +34,10 @@ public class GoldenFileBundleTests
         "Sample.xml",
     ];
 
-    // [[[FILE path="..." bytes="123" sha256="...64 hex..." [attributi extra]]]]
-    // seguito da newline, contenuto, newline, [[[END FILE]]]
+    // <<<FILE path="..." bytes="123" sha256="...64 hex..." [attributi extra]>>>
+    // seguito da newline, contenuto, newline, <<<END FILE>>>
     private static readonly Regex FileBlockPattern = new(
-        """^\[\[\[FILE path=\"(?<path>[^\"]+)\" bytes=\"(?<bytes>\d+)\" sha256=\"(?<sha>[0-9a-f]{64})\"(?<attrs>[^\]]*)\]\]\]\r?\n(?<content>.*?)\r?\n\[\[\[END FILE\]\]\]""",
+        """^<<<FILE path=\"(?<path>[^\"]+)\" bytes=\"(?<bytes>\d+)\" sha256=\"(?<sha>[0-9a-f]{64})\"(?<attrs>[^>]*)>>>\r?\n(?<content>.*?)\r?\n<<<END FILE>>>""",
         RegexOptions.Multiline | RegexOptions.Singleline);
 
     private sealed record ParsedBlock(string Content, string DeclaredSha, long DeclaredBytes);
@@ -194,7 +194,7 @@ public class GoldenFileBundleTests
     {
         var (_, blocks) = GenerateGolden();
         Assert.Contains(
-            "[LT]![CDATA[Testo con [LT]tag[GT] non interpretati e ]][GT] incluso qui.]][GT]",
+            "<![CDATA[Testo con <tag> non interpretati e ]]> incluso qui.]]>",
             blocks["Sample.xml"].Content);
     }
 }

@@ -322,3 +322,6 @@ end_of_line = lf
 
 [*.py]
 end_of_line = lf
+
+[.gitignore]
+end_of_line = lf

@@ -8,15 +8,23 @@ solution: ContextBundler
 project: ContextBundler
 version: 1.0
 license: MIT
-updated: 2026-08-09
+updated: 2026-08-12
 ---
 # Changelog ContextBundler
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
+## [Unreleased] - 2026-08-12
+
+### Changed
+
+- Rimosso l'escaping di `<`/`>` in `[LT]`/`[GT]` introdotto in v1.1 (T1.2): il contenuto dei file torna a essere inserito nel bundle senza alterazioni. Aggiornato di conseguenza il test golden sul CDATA XML e rimossa la nota ormai obsoleta in `00-Indice-Documentazione.md`.
+- Ripristinati i delimitatori di fence dei blocchi file nel bundle da `[[[FILE ...]]]`/`[[[END FILE]]]` a `<<<FILE ...>>>`/`<<<END FILE>>>` (T1.1). L'escaping di `<`/`>` nel contenuto (`[LT]`/`[GT]`) resta invariato per ora, verrà ripristinato in T1.2.
+
 ## [1.1.0] - 2026-08-11
 
 ### Changed
+
 - escaping dei caratteri < e > in [LT] e [GT] nei file XML
 - fence dei file con [[[ e ]]] per evitare che il parser di alcuni chat tools li interpreti come tag XML
 

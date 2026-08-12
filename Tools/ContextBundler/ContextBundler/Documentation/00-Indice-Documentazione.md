@@ -21,10 +21,3 @@ Per estrarre solo alcune righe di un file invece del file intero, aggiungere
 uno o più range dopo il path. Esempio con doppio range sullo stesso file:
 
     MyProject/Services/Exporter.cs:120-180,340-410
-
-> **Nota (11/8):** dalla v1.1 tutti i caratteri `<` e `>` nel contenuto dei
-> file vengono automaticamente sostituiti con `[LT]`/`[GT]` prima di essere
-> scritti nel bundle (mitigazione per canali, es. Copilot 365, che alterano
-> i delimitatori ad angolo in fase di rendering/attachment). L'escape è
-> simmetrico e trasparente per l'utente: non serve gestirlo nella
-> context-request.

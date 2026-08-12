@@ -5,6 +5,7 @@
 *.md text eol=lf
 *.json text eol=lf
 *.py text eol=lf
+.gitignore text eol=lf
 
 # .NET → Windows-friendly
 *.cs text eol=crlf
