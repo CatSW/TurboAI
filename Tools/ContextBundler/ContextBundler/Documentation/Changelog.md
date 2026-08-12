@@ -16,10 +16,14 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased] - 2026-08-12
 
+### Added
+
+- T2.1: gestione opzione CLI `--base64` (parsing, passaggio fino a `BundleResult.ToBase64`). Conversione reale dell’output in base64 demandata a T2.2.
+
 ### Changed
 
-- Rimosso l'escaping di `<`/`>` in `[LT]`/`[GT]` introdotto in v1.1 (T1.2): il contenuto dei file torna a essere inserito nel bundle senza alterazioni. Aggiornato di conseguenza il test golden sul CDATA XML e rimossa la nota ormai obsoleta in `00-Indice-Documentazione.md`.
-- Ripristinati i delimitatori di fence dei blocchi file nel bundle da `[[[FILE ...]]]`/`[[[END FILE]]]` a `<<<FILE ...>>>`/`<<<END FILE>>>` (T1.1). L'escaping di `<`/`>` nel contenuto (`[LT]`/`[GT]`) resta invariato per ora, verrà ripristinato in T1.2.
+- T1.2 Rimosso l'escaping di `<`/`>` in `[LT]`/`[GT]` introdotto in v1.1 (T1.2): il contenuto dei file torna a essere inserito nel bundle senza alterazioni. Aggiornato di conseguenza il test golden sul CDATA XML e rimossa la nota ormai obsoleta in `00-Indice-Documentazione.md`.
+- T1.1 Ripristinati i delimitatori di fence dei blocchi file nel bundle da `[[[FILE ...]]]`/`[[[END FILE]]]` a `<<<FILE ...>>>`/`<<<END FILE>>>` (T1.1). L'escaping di `<`/`>` nel contenuto (`[LT]`/`[GT]`) resta invariato per ora, verrà ripristinato in T1.2.
 
 ## [1.1.0] - 2026-08-11
 

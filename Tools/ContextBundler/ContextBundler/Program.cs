@@ -1,4 +1,4 @@
-// dotnet run -- <rootPath> <inputFile.md> [outputFile.md] [--stdout]
+// dotnet run -- <rootPath> <inputFile.md> [outputFile.md] [--stdout] [--base64]
 //
 // inputFile.md: elenco righe, una per entry:
 //   src/MyLibrary/Class1.cs                     -> intero file
@@ -8,6 +8,9 @@
 //
 // --stdout: scrive il bundle su stdout invece che su file (utile per pipe, es. | Set-Clipboard).
 //           I messaggi di stato vanno su stderr per non sporcare l'output.
+//
+// --base64: scrive l'output finale (file o stdout) come stringa base64 del bundle invece del testo UTF-8.
+//           Compatibile con --stdout. La conversione reale e' implementata in T2.2; qui solo il passaggio del flag.
 //
 // smart-ass mode: se lanciato senza argomenti posizionali, seleziona il file
 // context-request*.md piu' recente nella directory corrente e genera automaticamente
@@ -21,7 +24,8 @@ using ContextBundler.Constants;
 using ContextBundler.Services;
 
 bool toStdout = args.Contains("--stdout");
-var positional = args.Where(a => a != "--stdout").ToArray();
+bool toBase64 = args.Contains("--base64");
+var positional = args.Where(a => a != "--stdout" && a != "--base64").ToArray();
 
 if (positional.Length == 0)
 {
@@ -32,7 +36,7 @@ if (positional.Length == 0)
 
 if (positional.Length < 2)
 {
-    Console.Error.WriteLine("Uso: dotnet run -- <rootPath> <inputFile.md> [outputFile.md] [--stdout]");
+    Console.Error.WriteLine("Uso: dotnet run -- <rootPath> <inputFile.md> [outputFile.md] [--stdout] [--base64]");
     return 1;
 }
 
@@ -61,14 +65,14 @@ var entries = File.ReadAllLines(inputFile)
     .Distinct()
     .ToList();
 
-var result = BundleGenerator.Generate(rootPath, Path.GetFileName(inputFile), entries, Log);
+var result = BundleGenerator.Generate(rootPath, Path.GetFileName(inputFile), entries, Log, toBase64);
 
 if (toStdout)
     Console.Out.Write(result.BundleText);
 else
     File.WriteAllText(outputFile, result.BundleText, new System.Text.UTF8Encoding(false));
 
-Log($"Bundle generato{(toStdout ? " (stdout)" : $": {outputFile}")} ({result.IncludedCount}/{result.TotalEntries} entry incluse, {result.TotalBytes / 1024.0:F1} KB)");
+Log($"Bundle generato{(toStdout ? " (stdout)" : $": {outputFile}")} ({result.IncludedCount}/{result.TotalEntries} entry incluse, {result.TotalBytes / 1024.0:F1} KB){(result.ToBase64 ? " [base64 pending T2.2]" : "")}");
 
 if (result.TotalBytes > BundleFormatConstants.SizeWarningBytes)
     Log($"Attenzione: bundle sopra {BundleFormatConstants.SizeWarningBytes / 1024} KB, valuta di ridurre la lista o usare estratti mirati.");

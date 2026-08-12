@@ -44,11 +44,11 @@ Il test per il caso XML aggiunto nella 1.1 deve essere mantenuto ma aggiornarlo 
 #### T1.2 - ripristino < e >
 
 Ripristinare uso invariato dei caratteri < e > al posto delle sequenze [LT] e [GT] introdotte nel tentativo della 1.1
-<next_task>
+
 ### M2 - supporto output base64 opzionale
 
 #### T2.1 - aggiungere gestione passaggio opzione generazione output finale in formato base64
-
+<next_task>
 #### T2.2 - implementare generazione base64 da richiamare se opzione attiva
 </next_task>
 Riferimento implementativo: tool standalone già testati e usati sul canale Copilot 365 (`.catsw-utility/artifacts/file-to-base64.py`, `base64-to-file.py`). Una volta integrata l'opzione nel tool, i due script standalone non sono più necessari operativamente ma restano in `artifacts/` come riferimento.

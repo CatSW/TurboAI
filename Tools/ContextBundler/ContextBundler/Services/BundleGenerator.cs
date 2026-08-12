@@ -13,7 +13,8 @@ internal static class BundleGenerator
         string rootPath,
         string sourceListName,
         List<string> entries,
-        Action<string> log)
+        Action<string> log,
+        bool toBase64 = false)
     {
         var warnings = new Models.BundleWarnings();
         var bomFiles = new List<string>();
@@ -36,6 +37,7 @@ internal static class BundleGenerator
         var bundleText = header + fileBlocks.ToString();
         var includedCount = entries.Count - warnings.Missing.Count - warnings.SkippedBinary.Count;
 
+        // T2.1: flag propagato. Conversione base64 reale in T2.2.
         return new Models.BundleResult
         {
             BundleText = bundleText,
@@ -43,6 +45,7 @@ internal static class BundleGenerator
             TotalEntries = entries.Count,
             TotalBytes = totalBytes,
             Warnings = warnings,
+            ToBase64 = toBase64,
         };
     }
 }
