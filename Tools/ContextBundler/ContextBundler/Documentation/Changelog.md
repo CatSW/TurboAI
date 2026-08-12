@@ -18,6 +18,7 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ### Added
 
+- T2.2: conversione reale dell’output in base64 quando è presente `--base64` (UTF-8 → `Convert.ToBase64String` standard senza line-break). Compatibile con `--stdout`.
 - T2.1: gestione opzione CLI `--base64` (parsing, passaggio fino a `BundleResult.ToBase64`). Conversione reale dell’output in base64 demandata a T2.2.
 
 ### Changed

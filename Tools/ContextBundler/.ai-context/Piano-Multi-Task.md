@@ -48,13 +48,13 @@ Ripristinare uso invariato dei caratteri < e > al posto delle sequenze [LT] e [G
 ### M2 - supporto output base64 opzionale
 
 #### T2.1 - aggiungere gestione passaggio opzione generazione output finale in formato base64
-<next_task>
+
 #### T2.2 - implementare generazione base64 da richiamare se opzione attiva
-</next_task>
+
 Riferimento implementativo: tool standalone già testati e usati sul canale Copilot 365 (`.catsw-utility/artifacts/file-to-base64.py`, `base64-to-file.py`). Una volta integrata l'opzione nel tool, i due script standalone non sono più necessari operativamente ma restano in `artifacts/` come riferimento.
-
+<next_task>
 #### T2.3 - implementare nuovi test di verifica nuova funzionalità opzione output base64
-
+</next_task>
 ### M3 - rilascio nuova versione
 
 #### T3.1 - aggiornare versione 1.3.0.0 con compilazione AOT e copia del nuovo exe nella .catsw-utility del progetto TurboAI

@@ -37,7 +37,13 @@ internal static class BundleGenerator
         var bundleText = header + fileBlocks.ToString();
         var includedCount = entries.Count - warnings.Missing.Count - warnings.SkippedBinary.Count;
 
-        // T2.1: flag propagato. Conversione base64 reale in T2.2.
+        // T2.2: se richiesto, converte l'intero bundle in base64 (UTF-8 → base64 standard senza line-break)
+        if (toBase64)
+        {
+            var utf8 = Encoding.UTF8.GetBytes(bundleText);
+            bundleText = Convert.ToBase64String(utf8);
+        }
+
         return new Models.BundleResult
         {
             BundleText = bundleText,

@@ -10,7 +10,7 @@
 //           I messaggi di stato vanno su stderr per non sporcare l'output.
 //
 // --base64: scrive l'output finale (file o stdout) come stringa base64 del bundle invece del testo UTF-8.
-//           Compatibile con --stdout. La conversione reale e' implementata in T2.2; qui solo il passaggio del flag.
+//           Compatibile con --stdout.
 //
 // smart-ass mode: se lanciato senza argomenti posizionali, seleziona il file
 // context-request*.md piu' recente nella directory corrente e genera automaticamente
@@ -72,7 +72,7 @@ if (toStdout)
 else
     File.WriteAllText(outputFile, result.BundleText, new System.Text.UTF8Encoding(false));
 
-Log($"Bundle generato{(toStdout ? " (stdout)" : $": {outputFile}")} ({result.IncludedCount}/{result.TotalEntries} entry incluse, {result.TotalBytes / 1024.0:F1} KB){(result.ToBase64 ? " [base64 pending T2.2]" : "")}");
+Log($"Bundle generato{(toStdout ? " (stdout)" : $": {outputFile}")} ({result.IncludedCount}/{result.TotalEntries} entry incluse, {result.TotalBytes / 1024.0:F1} KB){(result.ToBase64 ? " [base64]" : "")}");
 
 if (result.TotalBytes > BundleFormatConstants.SizeWarningBytes)
     Log($"Attenzione: bundle sopra {BundleFormatConstants.SizeWarningBytes / 1024} KB, valuta di ridurre la lista o usare estratti mirati.");
