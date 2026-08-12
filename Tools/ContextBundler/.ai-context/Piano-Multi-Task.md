@@ -60,11 +60,11 @@ Riferimento implementativo: tool standalone già testati e usati sul canale Copi
 #### T3.1 - aggiornare versione 1.2.0.0 con compilazione AOT e copia del nuovo exe nella .catsw-utility del progetto TurboAI
 
 #### T3.2 - aggiornare il Changelog
-<next_task>
-#### T3.3 - aggiornare documentazione
-</next_task>
-#### T3.4 - aggiornare skill (skill-uso-tools.md e dipendenze) per riflettere i path in .ai-context
 
+#### T3.3 - aggiornare documentazione
+<next_task>
+#### T3.4 - aggiornare skill (skill-uso-tools.md e dipendenze) per riflettere i path in .ai-context
+</next_task>
 #### T42 - Piano Completato
 
 - Guru Meditation
