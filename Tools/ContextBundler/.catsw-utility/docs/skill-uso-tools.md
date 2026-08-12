@@ -2,9 +2,9 @@
 title: skill-turbo-ai-tools-use-channel-b-en
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 1.0.1
+version: 1.0.2
 updated: 2026-08-12
-note: "Variant without references to the full agentic flow (Channel A/V5.5 routing) — for use from locations where only Channel B is available (e.g. Copilot M365). Updated for unified process-from-llm orchestrator."
+note: "Variant without references to the full agentic flow (Channel A/V5.5 routing) — for use from locations where only Channel B is available (e.g. Copilot M365). Updated for unified process-from-llm orchestrator and for the native --base64 ContextBundler output (v1.2+)."
 ---
 ## Skill - Using CatSW tools in LLM chat
 
@@ -201,6 +201,7 @@ The user's Copilot for Microsoft 365 interface does not support attaching `.zip`
 - an empty field expected by the task must be treated as information to be completed, not as a conversion artifact;
 - before "correcting" a suspected formatting anomaly, look for confirmation in the real file, a screenshot provided by the user, a targeted output, or a hash;
 - if the source can't be verified, describe the anomaly as a possible representation transformation, not as a confirmed defect in the file.
+- **verified mitigation**: request/generate ContextBundler output for this channel with the native `--base64` flag (ContextBundler ≥ v1.2, see `Documentation/01-Guida-CLI.md`). Confirmed by hash/size verification that base64 payloads pass through this channel byte-for-byte, while plain-text bundles on this channel are prone to angle-bracket delimiter alteration and silent elision of embedded C# code blocks (`{ ... }` collapsed to `;`). Decode the payload before use. Channels that do not alter attachment content (Claude, Grok) do not need this — keep the plain-text bundle there.
 
 ### 9.1 Mandatory naming for downloadable artifacts
 

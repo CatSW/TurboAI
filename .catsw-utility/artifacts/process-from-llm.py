@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.1
+# Version 1.2 riga 170 cablato temporaneamente "", "--base64""
 """
 Orchestratore unificato per artefatti LLM e context-request.
 
@@ -167,7 +167,7 @@ def run_context_bundler() -> int:
     # ContextBundler (SmartAssFileResolver) cerca già in Downloads.
     try:
         result = subprocess.run(
-            [str(CONTEXT_BUNDLER_EXE)],
+            [str(CONTEXT_BUNDLER_EXE), "--base64"],
             cwd=str(UTILITY_ROOT),
             check=False,
         )

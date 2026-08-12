@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.0
+# Version 1.1 riga 174 cablato temporaneamente , "--base64"
 # lightweight start-session for new AI Context model
 
 from __future__ import annotations
@@ -96,7 +96,7 @@ def main() -> int:
     child_env["PYTHONIOENCODING"] = "utf-8"
 
     # --- 3. Latest Changelog section → .ai-context/info_Changelog.md ----
-    changelog_src = repo_root / "Tools" / "ContextBundler" / "ContextBundler" / "Documentation" / "Changelog.md"
+    changelog_src = repo_root / "ContextBundler" / "Documentation" / "Changelog.md"
     extract_changelog_script = find_script("extract-latest-changelog.py", artefacts_root)
     info_changelog_path = ai_context_dir / "info_Changelog.md"
 
@@ -171,7 +171,7 @@ def main() -> int:
         return 1
 
     result = subprocess.run(
-        [str(bundler)],
+        [str(bundler), "--base64"],
         cwd=utility_root,
     )
     if result.returncode != 0:

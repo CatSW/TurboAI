@@ -8,11 +8,17 @@ solution: ContextBundler
 project: ContextBundler
 version: 1.0
 license: MIT
-updated: 2026-08-12
+updated: 2026-08-13
 ---
 # Changelog ContextBundler
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
+
+## [1.0.3] - 2026-08-13
+
+- ContextBundler con supporto output base64
+- tool con valore base64 cablato per prova
+- aggiornamento skills
 
 ## [1.0.2] - 2026-08-12
 

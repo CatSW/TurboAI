@@ -1,11 +1,56 @@
 ---
-title: skill-turbo-ai-tools-use-channel-b-en
+title: skill-turbo-ai-tools-use-channel-a-plus-b
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 version: 1.0.1
 updated: 2026-08-12
-note: "Variant without references to the full agentic flow (Channel A/V5.5 routing) — for use from locations where only Channel B is available (e.g. Copilot M365). Updated for unified process-from-llm orchestrator."
+description: Governs the interaction between Channel A (Operational Agent) and Channel B (Control Tower). Configures roles, token constraints, chat reports, and the Keep a Changelog 1.1.0 format for .NET 10 projects.
 ---
+
+# Agentic Governance TDM 1.0: Channel A + Channel B
+
+## Overview
+
+This skill defines the operational rules and role division for executing development tasks.
+
+---
+
+## 1. Channel Architecture and Roles
+
+### Channel A — Operational Agent (Executor)
+
+* **Role:** Modifies C# source code and project files (`.csproj`) if necessary to add dependencies. Compiles and runs unit tests.
+* **Reading Scope:** Consults `.ai-context/canale-a/<project>/AGENT_CONTEXT.md` and relevant code if needed.
+* **Prohibitions:** 
+  * NEVER directly modifies files in `Documentation/`, `Changelog.md`, or Plan files in `.ai-context/`.
+  * NEVER generates intermediate state files.
+* **Mandatory Chat Output:**
+  1. **Operational Report:** Execution status (`PASS`/`FAIL`), executed tests, modified code/project files.
+  2. **Changelog Delta:** A single, isolated, and copy-pasteable Markdown block containing the modifications formatted strictly according to **Keep a Changelog 1.1.0**.
+
+### Channel B — Control Tower (Supervisor)
+
+* **Role:** Performs code review on the modifications made by Channel A (left in a *dirty* state on the repository).
+* **Document Management:** Takes the delta produced by Channel A and pastes it into `Changelog.md` inside `<project>/Documentation/`.
+* **State Progression:** Updates the Plan in `.ai-context/` and provides the task-closing commit script (including the upcoming call to the Python tool to move the `<next_task>` marker).
+
+---
+
+## 2. Changelog Delta Standard (Keep a Changelog)
+
+Channel A must format the isolated Changelog block following the [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/) specifications.
+
+---
+
+## 3. Agentic Artifact Isolation
+
+* **Product Transparency:** All product documentation inside `Documentation/` and `README.md` files must remain entirely agnostic, clean, and free of references to the use of AI, prompts, or agentic logs.
+* **Segregation:** The entire agentic governance dashboard resides exclusively in the hidden `.ai-context/` folder and the unreleased `.github/` folder.
+
+---
+
+# skill-turbo-ai-tools-use-channel-b-en
+
 ## Skill - Using CatSW tools in LLM chat
 
 Audience: LLM. Purpose: acquire context, request Python/PowerShell commands, generate artifacts, verify patches via `.catsw-utility`.
@@ -201,6 +246,7 @@ The user's Copilot for Microsoft 365 interface does not support attaching `.zip`
 - an empty field expected by the task must be treated as information to be completed, not as a conversion artifact;
 - before "correcting" a suspected formatting anomaly, look for confirmation in the real file, a screenshot provided by the user, a targeted output, or a hash;
 - if the source can't be verified, describe the anomaly as a possible representation transformation, not as a confirmed defect in the file.
+- **verified mitigation**: request/generate ContextBundler output for this channel with the native `--base64` flag (ContextBundler ≥ v1.2, see `Documentation/01-Guida-CLI.md`). Confirmed by hash/size verification that base64 payloads pass through this channel byte-for-byte, while plain-text bundles on this channel are prone to angle-bracket delimiter alteration and silent elision of embedded C# code blocks (`{ ... }` collapsed to `;`). Decode the payload before use. Channels that do not alter attachment content (Claude, Grok) do not need this — keep the plain-text bundle there.
 
 ### 9.1 Mandatory naming for downloadable artifacts
 
