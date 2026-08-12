@@ -56,13 +56,13 @@ Riferimento implementativo: tool standalone già testati e usati sul canale Copi
 #### T2.3 - implementare nuovi test di verifica nuova funzionalità opzione output base64
 
 ### M3 - rilascio nuova versione
-<next_task>
-#### T3.1 - aggiornare versione 1.3.0.0 con compilazione AOT e copia del nuovo exe nella .catsw-utility del progetto TurboAI
-</next_task>
+
+#### T3.1 - aggiornare versione 1.2.0.0 con compilazione AOT e copia del nuovo exe nella .catsw-utility del progetto TurboAI
+
 #### T3.2 - aggiornare il Changelog
-
+<next_task>
 #### T3.3 - aggiornare documentazione
-
+</next_task>
 #### T3.4 - aggiornare skill (skill-uso-tools.md e dipendenze) per riflettere i path in .ai-context
 
 #### T42 - Piano Completato

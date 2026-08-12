@@ -6,7 +6,7 @@ type: changelog
 product: Turbo-AI Tools
 solution: ContextBundler
 project: ContextBundler
-version: 1.0
+version: 1.2
 license: MIT
 updated: 2026-08-12
 ---
@@ -14,7 +14,9 @@ updated: 2026-08-12
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased] - 2026-08-12
+## [Unreleased]
+
+## [1.2.0] - 2026-08-12
 
 ### Added
 
@@ -24,6 +26,8 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ### Changed
 
+- version 1.2
+- aggiornato pacchetto nuget in progetto di test
 - T1.2 Rimosso l'escaping di `<`/`>` in `[LT]`/`[GT]` introdotto in v1.1 (T1.2): il contenuto dei file torna a essere inserito nel bundle senza alterazioni. Aggiornato di conseguenza il test golden sul CDATA XML e rimossa la nota ormai obsoleta in `00-Indice-Documentazione.md`.
 - T1.1 Ripristinati i delimitatori di fence dei blocchi file nel bundle da `[[[FILE ...]]]`/`[[[END FILE]]]` a `<<<FILE ...>>>`/`<<<END FILE>>>` (T1.1). L'escaping di `<`/`>` nel contenuto (`[LT]`/`[GT]`) resta invariato per ora, verrà ripristinato in T1.2.
 
