@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.2 riga 170 cablato temporaneamente "", "--base64""
+# Version 1.3
 """
 Orchestratore unificato per artefatti LLM e context-request.
 
@@ -26,6 +26,7 @@ Tutto l'output va su console + Downloads\\ToLlm.txt (tee).
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -37,6 +38,23 @@ from pathlib import Path
 # Path layout
 # ---------------------------------------------------------------------------
 # Questo script vive in .catsw-utility/artifacts/
+
+def configure_utf8_stdio() -> None:
+    for stream_name in ("stdin", "stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is not None and hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="strict")
+
+
+def utf8_child_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
+configure_utf8_stdio()
+
 ARTEFACTS_ROOT = Path(__file__).resolve().parent          # .../.catsw-utility/artifacts
 UTILITY_ROOT = ARTEFACTS_ROOT.parent                      # .../.catsw-utility
 SOLUTION_ROOT = UTILITY_ROOT.parent                       # root della solution
@@ -154,7 +172,8 @@ def run_context_bundler() -> int:
         move_result = subprocess.run(
             [sys.executable, str(move_script)],
             cwd=str(ARTEFACTS_ROOT),
-            check=False
+            check=False,
+            env=utf8_child_env(),
         )
         if move_result.returncode != 0:
             log(f"==> Attenzione: {move_script.name} ha terminato con codice {move_result.returncode}")
@@ -167,9 +186,11 @@ def run_context_bundler() -> int:
     # ContextBundler (SmartAssFileResolver) cerca già in Downloads.
     try:
         result = subprocess.run(
-            [str(CONTEXT_BUNDLER_EXE), "--base64"],
+            #[str(CONTEXT_BUNDLER_EXE), "--base64"],
+            [str(CONTEXT_BUNDLER_EXE)],
             cwd=str(UTILITY_ROOT),
             check=False,
+            env=utf8_child_env(),
         )
         return result.returncode
     except Exception as exc:
@@ -189,7 +210,7 @@ def run_process_zip_and_scripts() -> int:
     # Eseguiamo lo script esistente come sottoprocesso così riusiamo tutta
     # la logica di zip/script/archiviazione interna senza duplicarla.
     cmd = [sys.executable, str(PROCESS_ZIP_SCRIPT)]
-    result = subprocess.run(cmd, cwd=str(ARTEFACTS_ROOT), check=False)
+    result = subprocess.run(cmd, cwd=str(ARTEFACTS_ROOT), check=False, env=utf8_child_env())
     return result.returncode
 
 
@@ -198,7 +219,7 @@ def run_process_zip_and_scripts() -> int:
 # ---------------------------------------------------------------------------
 def main() -> int:
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("=== process-from-llm v1.1 (Python) - orchestratore unificato ===")
+    log("=== process-from-llm v1.3 (Python) - orchestratore unificato ===")
     log(f"Esecuzione avviata: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"Solution Root : {SOLUTION_ROOT}")
     log(f"Utility Root  : {UTILITY_ROOT}")
@@ -219,6 +240,8 @@ def main() -> int:
         return 1
 
     if not candidates:
+        # Fallback root/temp rimosso (assessment T0.1 / T2.4): gli orfani sono
+        # gestiti dalla rotazione preventiva move-to-history, non rieseguiti qui.
         err = f"Nessun file context-request-*.md o FromLlm-*.{{py|ps1|zip}} trovato in {DOWNLOADS_PATH}."
         log(f"ERRORE: {err}")
         return 1
@@ -264,7 +287,7 @@ def main() -> int:
             exit_code = run_process_zip_and_scripts()
             # Lo script interno archivia solo gli script eseguiti dentro
             # .catsw-utility. Il file originale in Downloads lo archiviamo noi
-            # (se è ancora presente: per gli zip viene spostato e poi eliminato).
+            # (se è ancora presente: per gli zip viene archiviato dallo script interno).
             if working_file.exists():
                 archive_to_history(working_file)
             else:
@@ -290,3 +313,4 @@ if __name__ == "__main__":
     except Exception as exc:
         log(f"ERRORE non gestito: {exc}")
         sys.exit(1)
+

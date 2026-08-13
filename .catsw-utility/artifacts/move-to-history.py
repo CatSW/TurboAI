@@ -14,9 +14,27 @@ incrementale invece di sovrascrivere.
 
 from __future__ import annotations
 
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
+
+
+def configure_utf8_stdio() -> None:
+    for stream_name in ("stdin", "stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is not None and hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="strict")
+
+
+def utf8_child_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
+configure_utf8_stdio()
 
 ARTEFACTS_ROOT = Path(__file__).resolve().parent
 UTILITY_ROOT = ARTEFACTS_ROOT.parent  # .catsw-utility

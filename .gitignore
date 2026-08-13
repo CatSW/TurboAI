@@ -358,3 +358,7 @@ MigrationBackup/
 history/
 **/.catsw-utility/context-*
 
+# TurboAI local laboratory, staging, and generated chat output
+.catsw-utility/lab/
+.catsw-utility/temp/
+.catsw-utility/ToLlm*

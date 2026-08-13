@@ -31,6 +31,23 @@ from typing import Optional, Set
 # ---------------------------------------------------------------------------
 # Configurazione
 # ---------------------------------------------------------------------------
+
+def configure_utf8_stdio() -> None:
+    for stream_name in ("stdin", "stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is not None and hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="strict")
+
+
+def utf8_child_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
+configure_utf8_stdio()
+
 DOWNLOADS = Path(os.environ["USERPROFILE"]) / "Downloads"
 SCRIPT_DIR = Path(__file__).resolve().parent          # .../.catsw-utility/artifacts
 CATSW_DIR = SCRIPT_DIR.parent                         # .../.catsw-utility
@@ -115,6 +132,7 @@ def launch_cmd(cmd: Path, source_file: Path) -> None:
             ["cmd.exe", "/c", str(cmd)],
             cwd=str(CATSW_DIR),
             creationflags=creationflags,
+            env=utf8_child_env(),
         )
         _last_launch[source_file] = time.time()
     except Exception as e:

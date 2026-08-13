@@ -9,6 +9,9 @@ rem specificando posizione e dimensioni della finestra.
 rem ===========================================================================
 
 setlocal
+chcp 65001 >nul
+set "PYTHONUTF8=1"
+set "PYTHONIOENCODING=utf-8"
 
 rem Cartella artifacts dove risiede lo script Python
 set "SCRIPT_DIR=%~dp0artifacts"

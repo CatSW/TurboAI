@@ -12,6 +12,23 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+
+def configure_utf8_stdio() -> None:
+    for stream_name in ("stdin", "stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is not None and hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="strict")
+
+
+def utf8_child_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
+configure_utf8_stdio()
+
 TO_LLM_PATH = Path.home() / "Downloads" / "ToLlm.txt"
 
 
@@ -73,6 +90,7 @@ def main() -> int:
         subprocess.run(
             [sys.executable, str(sposta_script)],
             check=False,
+            env=utf8_child_env(),
         )
 
     # --- 2. Git info → .ai-context/info_git.txt -------------------------
@@ -91,12 +109,11 @@ def main() -> int:
     info_git_path = ai_context_dir / "info_git.txt"
     info_git_path.write_text(info_git, encoding="utf-8")
 
-    child_env = os.environ.copy()
-    child_env["PYTHONUTF8"] = "1"
-    child_env["PYTHONIOENCODING"] = "utf-8"
+    child_env = utf8_child_env()
 
     # --- 3. Latest Changelog section → .ai-context/info_Changelog.md ----
-    changelog_src = repo_root / "ContextBundler" / "Documentation" / "Changelog.md"
+    #changelog_src = repo_root / "ContextBundler" / "Documentation" / "Changelog.md"
+    changelog_src = repo_root / "Documentation" / "Changelog.md"
     extract_changelog_script = find_script("extract-latest-changelog.py", artefacts_root)
     info_changelog_path = ai_context_dir / "info_Changelog.md"
 
@@ -171,8 +188,10 @@ def main() -> int:
         return 1
 
     result = subprocess.run(
-        [str(bundler), "--base64"],
+        [str(bundler)],
+        #[str(bundler), "--base64"],
         cwd=utility_root,
+        env=utf8_child_env(),
     )
     if result.returncode != 0:
         log(f"ContextBundler ha restituito exit code {result.returncode}")

@@ -20,6 +20,23 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+
+def configure_utf8_stdio() -> None:
+    for stream_name in ("stdin", "stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is not None and hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="strict")
+
+
+def utf8_child_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    return env
+
+
+configure_utf8_stdio()
+
 CLR_GREEN = "\033[92m"
 CLR_YELLOW = "\033[93m"
 CLR_CYAN = "\033[96m"
