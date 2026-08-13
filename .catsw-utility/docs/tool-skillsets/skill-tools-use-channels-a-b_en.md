@@ -1,4 +1,42 @@
 ---
+title: skill-tools-use-channels-a-b
+copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
+author: IK0VCK
+version: 2.0.0
+updated: 2026-08-13
+audience: LLM
+mode: Channel A + Channel B
+---
+
+# CatSW Tools: Channel A + Channel B
+
+## Channel A orchestration preface
+
+Channel A is a full-agentic executor with its own harness, such as GitHub Copilot Agent. It is usually quota-limited or expensive; Channel B remains the control tower and prepares the smallest dense prompt that avoids wasting Channel A budget.
+
+Channel B must classify risk, define positive and negative scope, provide exact context, expected observable results, verification commands and stop conditions before assigning work.
+
+Channel A:
+- edits source and project files required by the assigned task;
+- reads the project-specific agent context and only additional code needed for execution;
+- runs restore/build/tests and reports PASS/FAIL, commands, changed files and deviations;
+- produces a compact Keep a Changelog delta or persistent execution delta when required by governance;
+- may append through a small mechanical delta file instead of reading and rewriting a large persistent log;
+- never edits `Documentation/`, product changelog, active plan or `SOLUTION_GOVERNANCE.md` unless the task explicitly changes this channel contract;
+- never commits, cleans, pushes, resets or rewrites history;
+- stops on unexpected scope, ambiguous behavior, failed prerequisite or a decision outside the authorized prompt.
+
+Channel B:
+- reviews Channel A's dirty state and report;
+- performs targeted recovery instead of rerunning a completed expensive task;
+- applies changelog/documentation/governance updates;
+- moves `<next_task>`, aligns `SOLUTION_GOVERNANCE.md`, verifies closure and controls the commit boundary.
+
+When no Channel A is used, Channel B may execute the complete task itself under the rules below.
+
+---
+
+---
 title: skill-tools-use-channels-b
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK

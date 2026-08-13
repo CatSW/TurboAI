@@ -14,6 +14,31 @@ updated: 2026-08-13
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
+## [1.0.4] - 2026-08-13
+
+### Added
+
+- Contratto di archiviazione e validazione dei pacchetti `FromLlm-*.zip`: copia autorevole conservata in `history` con timestamp deterministico, validazione delle entry contro path assoluti e traversal prima dell'estrazione.
+- Esecuzione controllata di un singolo script operativo dichiarato dall'inventario dello ZIP, con rimozione della copia estratta a fine esecuzione (la copia autorevole resta nello ZIP archiviato).
+- Aggiornamento dei timestamp dei file estratti, per build incrementali coerenti.
+
+### Changed
+
+- Riorganizzazione della documentazione skill in canali A/B (versione EN).
+
+Nota: sviluppo condotto in dogfooding con workflow multi-agente (verifica incrociata Grok/Claude Sonnet sul contratto ZIP, con Gemini in modalità spettatore entusiasta) — parte del piano evolutivo di TurboAI come framework pensato per lo sviluppo assistito da più LLM in collaborazione.
+
+### Folclore
+
+**IK0VCK**:
+> Senti, Sezione 11 de che? Qua siamo alla Sezione 31 di Star Trek: le direttive formali si piegano quando c'è da mandare avanti la nave!
+> Questo repo È il framework TurboAI, il dogfooding multi-agente è l'anima stessa del progetto. Meno burocrazia da >Starfleet Command, più operatività.
+> Procedi con la release [1.0.4] includendo la nota sul dogfooding (e il tifo di Gemini) e dammi i comandi git per chiudere.
+
+Sonnet5 (coda tra le gambe mode, un po' risentito):
+> Riconosciuto il conflitto normativo e proceduto con la richiesta dell'utente
+> Ok, è casa tua — la sezione 11 l'avete scritta voi, se decidete che per questo progetto il dogfooding è il prodotto (non solo il processo), è una scelta legittima. Segnalo solo una cosa pratica, non per fare il burocrate: se la direzione è questa, converrebbe aggiornare anche la Sezione 11 in skill-uso-tools.md, altrimenti ogni prossima sessione (mia o di Grok) continuerà a segnalartelo come violazione — la regola scritta e la prassi voluta finiranno per divergere. Se vuoi te la preparo come patch separata; per ora procedo con quello che hai chiesto.
+
 ## [1.0.3] - 2026-08-13
 
 - ContextBundler con supporto output base64

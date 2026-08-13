@@ -1,11 +1,49 @@
 ---
-title: skill-tools-use-channels-b
+title: skill-tools-use-channels-a-b-legacy
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 version: 2.0.0
 updated: 2026-08-13
 audience: LLM
-mode: Channel B
+mode: Channel A + Channel B legacy
+---
+
+# CatSW Tools: Channel A + Channel B
+
+## Channel A orchestration preface
+
+Channel A is a full-agentic executor with its own harness, such as GitHub Copilot Agent. It is usually quota-limited or expensive; Channel B remains the control tower and prepares the smallest dense prompt that avoids wasting Channel A budget.
+
+Channel B must classify risk, define positive and negative scope, provide exact context, expected observable results, verification commands and stop conditions before assigning work.
+
+Channel A:
+- edits source and project files required by the assigned task;
+- reads the project-specific agent context and only additional code needed for execution;
+- runs restore/build/tests and reports PASS/FAIL, commands, changed files and deviations;
+- produces a compact Keep a Changelog delta or persistent execution delta when required by governance;
+- may append through a small mechanical delta file instead of reading and rewriting a large persistent log;
+- never edits `Documentation/`, product changelog, active plan or `SOLUTION_GOVERNANCE.md` unless the task explicitly changes this channel contract;
+- never commits, cleans, pushes, resets or rewrites history;
+- stops on unexpected scope, ambiguous behavior, failed prerequisite or a decision outside the authorized prompt.
+
+Channel B:
+- reviews Channel A's dirty state and report;
+- performs targeted recovery instead of rerunning a completed expensive task;
+- applies changelog/documentation/governance updates;
+- moves `<next_task>`, aligns `SOLUTION_GOVERNANCE.md`, verifies closure and controls the commit boundary.
+
+When no Channel A is used, Channel B may execute the complete task itself under the rules below.
+
+---
+
+---
+title: skill-tools-use-channels-b-legacy
+copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
+author: IK0VCK
+version: 2.0.0
+updated: 2026-08-13
+audience: LLM
+mode: Channel B legacy
 ---
 
 # CatSW Tools: Channel B
@@ -75,26 +113,15 @@ All generated scripts must:
 
 Operational `.cmd` wrappers use CRLF and establish code page 65001 plus the Python UTF-8 variables. Markdown, JSON, YAML and Python use LF; C# and legacy PowerShell use the verified repository convention, normally CRLF.
 
-## 6. Standard FromLlm ZIP contract
+## 6. Legacy FromLlm ZIP contract
 
-Deliver multi-file work as one `FromLlm-<description>.zip` with no container directory. Paths mirror the solution root. Preserve original application filenames.
+Use this variant only with the pre-upgrade orchestrator used during the ReportGenerator work.
 
-The ZIP may contain at most one operational script, placed exactly at:
-- `.catsw-utility/temp/FromLlm-<description>.py`, preferred; or
-- `.catsw-utility/temp/FromLlm-<description>.ps1`, compatibility only.
+Deliver multi-file work as one `FromLlm-<description>.zip` with no container directory. Paths mirror the solution root and application filenames remain unchanged. Include at most one operational script at `.catsw-utility/FromLlm-<description>.py` or compatibility `.ps1`.
 
-The local orchestrator:
-1. normalizes adorned download names;
-2. moves the original ZIP to `.catsw-utility/history`, adding `-YYYYMMDD-HHMMSS` before `.zip` without overwriting;
-3. preserves that ZIP as the authoritative inspection copy;
-4. validates entries against absolute paths, traversal and destinations outside the repository;
-5. extracts directly to the solution root with overwrite semantics;
-6. executes exactly the script path declared by the current ZIP, from `temp`, with repository root as working directory and UTF-8 enabled;
-7. deletes the extracted script in `finally`, on success or failure, because it remains in the archived ZIP.
+The legacy orchestrator extracts the ZIP into the solution root, discovers the root-level script, executes it and writes `ToLlm.txt`. It may archive the script separately and may not preserve the original ZIP. Do not assume the new history-retention or `.catsw-utility/temp` ZIP contract.
 
-Never rely on scanning `temp` for the newest script belonging to a ZIP. Stale scripts must not be executed. A standalone `FromLlm-*.py/.ps1` may use the explicit compatibility branch only.
-
-Before delivery verify: physical name, link label, entries, relative paths, single script, non-zero sizes, line endings, syntax, no unexpected files, no path traversal and no duplicated extension.
+Before delivery verify: physical name, link label, entries, relative paths, single root-level script, non-zero sizes, line endings, syntax, no unexpected files, no path traversal and no duplicated extension.
 
 ## 7. Commands and outputs
 
