@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.4
-# T5: risoluzione dinamica del changelog path (OverrideChangeLogPath del task > DefaultChangeLogPath
-#     di governance > fail fast se nessuno dei due è configurato). Step next-task spostato prima
-#     dello step changelog perché quest'ultimo dipende dal suo output.
+# Version 1.6
+# T5.2: TurboAiWorkingRoot ora scoperto dinamicamente (primo antenato di __file__ che contiene sia
+#       .catsw-utility che .ai-context), non piu' derivato da un offset relativo fisso
+#       (parent.parent). Elimina la stessa classe di rischio gia' vista nell'episodio 11-12/8
+#       (root del monorepo confusa con la root di un sotto-progetto).
+# v1.6: OverrideChangeLogPath non matcha piu' il testo di design nel task (placeholder <path>);
+#       DefaultChangeLogPath/Override accettano directory (con o senza trailing slash) e
+#       appendono il nome file standard Changelog.md / ChangeLog.md; messaggi di errore
+#       espliciti sul formato atteso invece di path fantasma o eccezioni non gestite.
 # lightweight start-session for new AI Context model
 
 from __future__ import annotations
@@ -29,6 +34,24 @@ def utf8_child_env() -> dict[str, str]:
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
     return env
+
+
+def discover_working_root(start: Path) -> Path:
+    """
+    Risale da `start` (e dai suoi antenati) cercando la prima directory che
+    contiene sia una sottocartella `.catsw-utility` sia una `.ai-context`:
+    quella e' TurboAiWorkingRoot. Mai un offset relativo fisso, cosi' funziona
+    identicamente per l'istanza radice di TurboAI e per qualunque istanza di
+    sotto-soluzione annidata (es. Tools/ContextBundler) con la propria coppia
+    .catsw-utility/.ai-context.
+    """
+    for candidate in (start, *start.parents):
+        if (candidate / ".catsw-utility").is_dir() and (candidate / ".ai-context").is_dir():
+            return candidate
+    raise RuntimeError(
+        f"TurboAiWorkingRoot non trovato: nessun antenato di {start} contiene "
+        "sia .catsw-utility che .ai-context."
+    )
 
 
 def _parse_boolish(raw: str) -> bool | None:
@@ -92,8 +115,7 @@ def resolve_base64_mode(solution_root: Path | None = None) -> tuple[bool, str]:
 
     # 2. Governance file
     if solution_root is None:
-        artefacts = Path(__file__).resolve().parent
-        solution_root = artefacts.parent.parent
+        solution_root = discover_working_root(Path(__file__).resolve().parent)
     gov_val = _read_governance_base64(solution_root)
     if gov_val is not None:
         return gov_val, "governance"
@@ -102,34 +124,113 @@ def resolve_base64_mode(solution_root: Path | None = None) -> tuple[bool, str]:
     return False, "default"
 
 
+# Nome file changelog standard (Keep a Changelog). Ordine di preferenza su FS case-sensitive.
+_CHANGELOG_FILENAMES = ("Changelog.md", "ChangeLog.md", "CHANGELOG.md")
+
+# Placeholder tipici del testo di design del piano — non sono path reali.
+_PLACEHOLDER_RE = re.compile(
+    r"^(<[^>]*>|path|xxx|yyy|value|relpath|relative.?path)$",
+    re.IGNORECASE,
+)
+
+
+def _is_plausible_relpath(value: str) -> bool:
+    """
+    True se `value` sembra un path relativo reale, non un placeholder di documentazione.
+    Accetta file (.md) e directory (con/senza trailing slash, anche senza estensione).
+    """
+    if not value or not value.strip():
+        return False
+    v = value.strip().strip("`'")
+    if not v:
+        return False
+    if "<" in v or ">" in v:
+        return False
+    if _PLACEHOLDER_RE.match(v.rstrip("/\\")):
+        return False
+    # Deve assomigliare a un path: slash, o estensione file, o solo nome directory.
+    if "/" in v or "\\" in v:
+        return True
+    if Path(v).suffix:
+        return True
+    # Singolo segmento senza estensione: trattato come directory (es. "Documentation")
+    return v.replace("_", "").replace("-", "").isalnum()
+
+
 def _extract_override_changelog_path(next_task_text: str) -> str | None:
-    """Look for 'OverrideChangeLogPath=<path>' (or ':') anywhere in the next-task block text."""
-    m = re.search(
+    """
+    Cerca 'OverrideChangeLogPath=<path>' (o ':') nel testo del task attivo.
+    Ignora match su testo di design (placeholder tipo <path>, path, ...).
+    """
+    for m in re.finditer(
         r"OverrideChangeLogPath\s*[:=]\s*[`'\"]?([^\s`'\"]+)[`'\"]?",
         next_task_text,
         re.IGNORECASE,
+    ):
+        candidate = m.group(1).strip()
+        if _is_plausible_relpath(candidate):
+            return candidate
+    return None
+
+
+def _normalize_changelog_file(solution_root: Path, rel_value: str) -> Path:
+    """
+    Converte il valore di governance/override in un path file assoluto sotto solution_root.
+
+    Accetta:
+      - path file relativo:  Documentation/Changelog.md
+      - path directory:      Documentation/   oppure   Documentation
+        → appende il nome standard Changelog.md (con fallback ChangeLog.md / CHANGELOG.md
+          se il file preferito non esiste ma ne esiste uno degli altri).
+
+    Non solleva: se la directory non esiste o nessun file e' presente, restituisce comunque
+    il path convenzionale atteso cosi' il caller puo' emettere un messaggio chiaro.
+    """
+    rel = rel_value.strip().strip("`'")
+    rel_clean = rel.rstrip("/\\")
+    base = solution_root / rel_clean
+
+    looks_like_dir = (
+        rel.endswith(("/", "\\"))
+        or not Path(rel_clean).suffix
+        or (base.exists() and base.is_dir())
     )
-    return m.group(1) if m else None
+
+    if looks_like_dir:
+        for name in _CHANGELOG_FILENAMES:
+            candidate = base / name
+            if candidate.is_file():
+                return candidate
+        # Nessun file trovato: path convenzionale per il messaggio d'errore.
+        return base / _CHANGELOG_FILENAMES[0]
+
+    return base
 
 
 def resolve_changelog_path(
     solution_root: Path, next_task_text: str
-) -> tuple[Path | None, str]:
+) -> tuple[Path | None, str, str | None]:
     """
-    Effective changelog path, relative to solution_root.
-    Precedence: OverrideChangeLogPath (declared in the active task)
+    Effective changelog file path under solution_root.
+
+    Precedence: OverrideChangeLogPath (task attivo, path plausibile)
                 > DefaultChangeLogPath (governance)
-                > (None, "unset") — caller must fail fast on this.
+                > (None, "unset", None)
+
+    Ritorna (path|None, source, raw_value|None).
+    raw_value e' il valore grezzo letto, utile per messaggi d'errore.
     """
     override = _extract_override_changelog_path(next_task_text)
     if override:
-        return solution_root / override, "task override"
+        return _normalize_changelog_file(solution_root, override), "task override", override
 
     default = _read_governance_key(solution_root, "DefaultChangeLogPath")
     if default:
-        return solution_root / default, "governance default"
+        if not _is_plausible_relpath(default):
+            return None, "invalid-governance", default
+        return _normalize_changelog_file(solution_root, default), "governance default", default
 
-    return None, "unset"
+    return None, "unset", None
 
 
 configure_utf8_stdio()
@@ -178,12 +279,12 @@ def find_script(script_name: str, artefacts_root: Path) -> Path | None:
 def main() -> int:
     # Reset ToLlm.txt for this run
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("Executing startup-llm-session v1.4...")
+    log("Executing startup-llm-session v1.6...")
 
     # --- Path resolution ------------------------------------------------
     artefacts_root = Path(__file__).resolve().parent
     utility_root = artefacts_root.parent
-    repo_root = utility_root.parent
+    repo_root = discover_working_root(artefacts_root)
 
     solution_name = repo_root.name
     ai_context_dir = repo_root / ".ai-context"
@@ -247,22 +348,50 @@ def main() -> int:
             info_next_task_path.write_text(header + next_task_text, encoding="utf-8")
 
     # --- 4. Latest Changelog section → .ai-context/info_Changelog.md ----
-    changelog_path, changelog_source = resolve_changelog_path(repo_root, next_task_text)
+    changelog_path, changelog_source, changelog_raw = resolve_changelog_path(
+        repo_root, next_task_text
+    )
     info_changelog_path = ai_context_dir / "info_Changelog.md"
 
-    if changelog_path is None:
+    _CHANGELOG_FORMAT_HINT = (
+        "DefaultChangeLogPath (in SOLUTION_GOVERNANCE.md) oppure OverrideChangeLogPath "
+        "(nel task attivo) devono essere un path relativo a TurboAiWorkingRoot.\n"
+        "  Esempi validi:\n"
+        "    Documentation/Changelog.md     (file esplicito)\n"
+        "    Documentation/                 (directory → appende Changelog.md)\n"
+        "    Documentation                 (idem, senza trailing slash)\n"
+        "  Non usare placeholder tipo <path>."
+    )
+
+    if changelog_source == "unset" or changelog_path is None:
         log(
-            "ERRORE: nessun changelog configurato — imposta DefaultChangeLogPath in "
-            "SOLUTION_GOVERNANCE.md oppure OverrideChangeLogPath nel task attivo."
+            "ERRORE: nessun changelog configurato.\n" + _CHANGELOG_FORMAT_HINT
         )
         return 1
 
-    log(f"Changelog path: {changelog_path} (source={changelog_source})")
+    if changelog_source == "invalid-governance":
+        log(
+            f"ERRORE: DefaultChangeLogPath ha un valore non valido: {changelog_raw!r}\n"
+            + _CHANGELOG_FORMAT_HINT
+        )
+        return 1
+
+    log(
+        f"Changelog path: {changelog_path} "
+        f"(source={changelog_source}, raw={changelog_raw!r})"
+    )
 
     extract_changelog_script = find_script("extract-latest-changelog.py", artefacts_root)
 
-    if not changelog_path.exists():
-        log(f"ATTENZIONE: Changelog non trovato: {changelog_path}")
+    if not changelog_path.is_file():
+        parent = changelog_path.parent
+        hint = ""
+        if parent.is_dir():
+            present = [p.name for p in parent.iterdir() if p.is_file()]
+            hint = f" (directory presente; file trovati: {present or 'nessuno'})"
+        elif not parent.exists():
+            hint = f" (anche la directory padre non esiste: {parent})"
+        log(f"ATTENZIONE: Changelog non trovato: {changelog_path}{hint}")
         info_changelog_path.write_text("# Changelog not found\n", encoding="utf-8")
     elif not extract_changelog_script or not extract_changelog_script.exists():
         log("ATTENZIONE: extract-latest-changelog.py non trovato")

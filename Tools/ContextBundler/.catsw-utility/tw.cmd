@@ -4,6 +4,9 @@ REM Licensed under the MIT License. See LICENSE file in the project root for ful
 REM Version 1.0
 
 setlocal
+chcp 65001 >nul
+set "PYTHONUTF8=1"
+set "PYTHONIOENCODING=utf-8"
 
 rem Cartella dove risiede questo .cmd
 set "BASE_DIR=%~dp0"

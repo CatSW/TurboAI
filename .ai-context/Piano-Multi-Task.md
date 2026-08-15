@@ -320,7 +320,7 @@ point 4 of the rework protocol.
 
 ---
 
-<next_task>
+
 ### T5.2 - Implement default/override changelog routing
 
 1. Target Paths
@@ -367,9 +367,9 @@ point 4 of the rework protocol.
    - `[FROM T5.1: any other script found with a hardcoded changelog reference]= none
   (rg -il changelog artifacts → solo startup-llm-session.py ed extract-latest-changelog.py,
   nessun altro file in artifacts)`
-</next_task>
----
 
+---
+<next_task>
 ### T5.3 - Implement Keep a Changelog extraction fallback
 
 Unchanged from the previous version: 3-level fallback (Unreleased with
@@ -405,7 +405,7 @@ carried over identically from the original plan.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
 ### T5.5 - Integrate with startup session and update governance

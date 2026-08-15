@@ -1,7 +1,9 @@
 # ContextBundler – Solution Governance
 
 ## Identity
-- Local root (session cwd, for `git -C ..`, AND the effective root for ContextBundler tool paths and FromLlm-*.zip patch paths in this solution — see Repo Structure Peculiarity below): `C:\Repo\CatSW\TurboAI\Tools\ContextBundler`
+- TurboAiWorkingRoot: `C:/Repo/CatSW/TurboAI/Tools/ContextBundler/`
+- DefaultChangeLogPath: `ContextBundler/Documentation/`
+
 - Git top-level (real repo root — verify with `git rev-parse --show-toplevel`): `C:\Repo\CatSW\TurboAI`
 - Solution: `ContextBundler.slnx`
 - Version: v1.0
@@ -24,7 +26,7 @@
 
 ## Plan
 - File: Piano-Multi-Task.md
-- Alias: copilot365
+- Alias: to-be-defined ask me please!
 
 ## Commit Message Convention
 - Format: `[alias-Mx-Ty...]` short description

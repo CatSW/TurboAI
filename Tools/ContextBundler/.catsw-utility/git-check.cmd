@@ -1,7 +1,7 @@
 @echo off
 REM Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 REM Licensed under the MIT License. See LICENSE file in the project root for full license information.
-REM Version 1.1
+REM Version 1.2
 
 setlocal
 
@@ -26,6 +26,9 @@ if defined WorkingTreeDirty (
 echo.
 echo git -C .. log -2 --oneline
 git -C .. log -2 --oneline
+echo.
+
+for %%I in ("%~dp0..") do echo TurboAiWorkingRoot=%%~fI
 
 echo.
 echo Premere Invio o Esc 😀
