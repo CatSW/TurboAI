@@ -1,0 +1,62 @@
+{
+  "records": [
+    {
+      "transactionId": "U001",
+      "customerId": "Cliente-東京",
+      "category": "Servizi €",
+      "amount": 12.25,
+      "quantity": 1,
+      "lineAmount": 12.25,
+      "timestampUtc": "2026-08-05T09:00:00Z"
+    },
+    {
+      "transactionId": "U002",
+      "customerId": "Cliente-è",
+      "category": "Caffè",
+      "amount": 3.5,
+      "quantity": 2,
+      "lineAmount": 7.0,
+      "timestampUtc": "2026-08-05T10:00:00Z"
+    }
+  ],
+  "summary": {
+    "recordCount": 2,
+    "invalidRecordCount": 0,
+    "totalAmount": 19.25,
+    "totalQuantity": 3,
+    "averageLineAmount": 9.62,
+    "minimumLineAmount": 7.0,
+    "maximumLineAmount": 12.25,
+    "periodStartUtc": "2026-08-05T09:00:00Z",
+    "periodEndUtc": "2026-08-05T10:00:00Z",
+    "byCustomer": [
+      {
+        "key": "Cliente-è",
+        "recordCount": 1,
+        "totalQuantity": 2,
+        "totalAmount": 7.0
+      },
+      {
+        "key": "Cliente-東京",
+        "recordCount": 1,
+        "totalQuantity": 1,
+        "totalAmount": 12.25
+      }
+    ],
+    "byCategory": [
+      {
+        "key": "Caffè",
+        "recordCount": 1,
+        "totalQuantity": 2,
+        "totalAmount": 7.0
+      },
+      {
+        "key": "Servizi €",
+        "recordCount": 1,
+        "totalQuantity": 1,
+        "totalAmount": 12.25
+      }
+    ]
+  },
+  "issues": []
+}

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.1 riga 174 cablato temporaneamente , "--base64"
+# Version 1.3 – 2026-08-14
+# T4.4: resolve_base64_mode completa (Env > Governance > default false)
 # lightweight start-session for new AI Context model
 
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime
@@ -25,6 +27,72 @@ def utf8_child_env() -> dict[str, str]:
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
     return env
+
+
+def _parse_boolish(raw: str) -> bool | None:
+    """Return True/False for known values, None if invalid/empty."""
+    if raw is None:
+        return None
+    val = raw.strip().lower()
+    if not val:
+        return None
+    if val in ("true", "1", "yes"):
+        return True
+    if val in ("false", "0", "no"):
+        return False
+    return None
+
+
+def _read_governance_base64(solution_root: Path) -> bool | None:
+    """
+    Parse ContextBundler_output_base64 from .ai-context/SOLUTION_GOVERNANCE.md.
+    Returns True/False if a valid value is found, None if missing/invalid/file absent.
+    Tolerant of markdown list markers, backticks, extra whitespace and case.
+    """
+    gov_path = solution_root / ".ai-context" / "SOLUTION_GOVERNANCE.md"
+    if not gov_path.is_file():
+        return None
+    try:
+        text = gov_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    key_re = re.compile(
+        r"ContextBundler_output_base64\s*[:=]\s*[`'\"]?([^\s`'\"]+)[`'\"]?",
+        re.IGNORECASE,
+    )
+    for line in text.splitlines():
+        m = key_re.search(line)
+        if m:
+            return _parse_boolish(m.group(1))
+    return None
+
+
+def resolve_base64_mode(solution_root: Path | None = None) -> tuple[bool, str]:
+    """
+    Effective base64 mode for ContextBundler.
+    Precedence: env TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64
+                > Governance ContextBundler_output_base64
+                > default false.
+    Accepts true/false/1/0/yes/no (case-insensitive, surrounding whitespace).
+    Invalid values are ignored and fall through to the next level.
+    """
+    # 1. Environment variable (highest priority)
+    env_val = os.environ.get("TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64")
+    parsed = _parse_boolish(env_val) if env_val is not None else None
+    if parsed is not None:
+        return parsed, "env"
+
+    # 2. Governance file
+    if solution_root is None:
+        artefacts = Path(__file__).resolve().parent
+        solution_root = artefacts.parent.parent
+    gov_val = _read_governance_base64(solution_root)
+    if gov_val is not None:
+        return gov_val, "governance"
+
+    # 3. Default
+    return False, "default"
 
 
 configure_utf8_stdio()
@@ -73,7 +141,7 @@ def find_script(script_name: str, artefacts_root: Path) -> Path | None:
 def main() -> int:
     # Reset ToLlm.txt for this run
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("Executing startup-llm-session...")
+    log("Executing startup-llm-session v1.3...")
 
     # --- Path resolution ------------------------------------------------
     artefacts_root = Path(__file__).resolve().parent
@@ -187,9 +255,14 @@ def main() -> int:
         log(f"ERRORE: ContextBundler.exe non trovato in {artefacts_root}")
         return 1
 
+    to_base64, source = resolve_base64_mode(repo_root)
+    cmd = [str(bundler)]
+    if to_base64:
+        cmd.append("--base64")
+
+    log(f"ContextBundler output mode: base64={to_base64} (source={source})")
     result = subprocess.run(
-        [str(bundler)],
-        #[str(bundler), "--base64"],
+        cmd,
         cwd=utility_root,
         env=utf8_child_env(),
     )

@@ -8,11 +8,22 @@ solution: ContextBundler
 project: ContextBundler
 version: 1.0
 license: MIT
-updated: 2026-08-13
+updated: 2026-08-15
 ---
 # Changelog ContextBundler
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
+
+## [Unreleased] - 2026-08-15
+
+- git-check.cmd 1.2 : scrive anche TurboAiWorkingRoot
+- ContextBundler scrive anche TurboAiWorkingRoot
+- aggiornamenti skill e doc
+- implementata - M4 - Configurable ContextBundler output mode
+- implementata - M3 - Regression tests
+- implementata - M2 - Execute the script directly from the ZIP-defined temp path
+- implementata - M1 - Archive the ZIP before extraction
+- lavoro su piano - TurboAI utility toolchain v3.0 - FromLlm ZIP retention and temp execution - e altro aggiunto in corso d'opera
 
 ## [1.0.4] - 2026-08-13
 

@@ -133,7 +133,7 @@ public class GoldenFileBundleTests
             foreach (var w in result.Warnings.SkippedBinary)
                 warnings.AppendLine(w);
             warnings.AppendLine("BundleText (truncated to 2000 chars):");
-            warnings.AppendLine(result.BundleText.Length <= 2000 ? result.BundleText : result.BundleText.Substring(0, 2000));
+            warnings.AppendLine(result.BundleText.Length <= 2000 ? result.BundleText : result.BundleText[..2000]);
             Assert.Fail(warnings.ToString());
         }
 
@@ -186,7 +186,7 @@ public class GoldenFileBundleTests
         Assert.Contains("# CONTEXT BUNDLE", header);
         Assert.Contains("# BundleFormatVersion:", header);
         Assert.Contains("# ContextBundler V", header);
-        Assert.Contains("# Repository root:", header);
+        Assert.Contains("# TurboAiWorkingRoot:", header);
         Assert.Contains("# Generated:", header);
         Assert.Contains("# Source list: golden-entries.md", header);
         Assert.Contains("# MarkdownEscaping:", header);

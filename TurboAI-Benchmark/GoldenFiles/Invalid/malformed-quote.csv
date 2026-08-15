@@ -1,0 +1,2 @@
+TransactionId,CustomerId,Category,Amount,Quantity,Timestamp
+Q001,C001,"Broken,10.00,1,2026-08-01T10:00:00Z

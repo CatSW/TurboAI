@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.3
+# Version 1.5 – 2026-08-14
+# T4.4: resolve_base64_mode completa (Env > Governance > default false)
 """
 Orchestratore unificato per artefatti LLM e context-request.
 
@@ -51,6 +52,74 @@ def utf8_child_env() -> dict[str, str]:
     env["PYTHONUTF8"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
     return env
+
+
+def _parse_boolish(raw: str) -> bool | None:
+    """Return True/False for known values, None if invalid/empty."""
+    if raw is None:
+        return None
+    val = raw.strip().lower()
+    if not val:
+        return None
+    if val in ("true", "1", "yes"):
+        return True
+    if val in ("false", "0", "no"):
+        return False
+    return None
+
+
+def _read_governance_base64(solution_root: Path) -> bool | None:
+    """
+    Parse ContextBundler_output_base64 from .ai-context/SOLUTION_GOVERNANCE.md.
+    Returns True/False if a valid value is found, None if missing/invalid/file absent.
+    Tolerant of markdown list markers, backticks, extra whitespace and case.
+    """
+    gov_path = solution_root / ".ai-context" / "SOLUTION_GOVERNANCE.md"
+    if not gov_path.is_file():
+        return None
+    try:
+        text = gov_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    # Look for lines containing the key (case-insensitive)
+    key_re = re.compile(
+        r"ContextBundler_output_base64\s*[:=]\s*[`'\"]?([^\s`'\"]+)[`'\"]?",
+        re.IGNORECASE,
+    )
+    for line in text.splitlines():
+        m = key_re.search(line)
+        if m:
+            return _parse_boolish(m.group(1))
+    return None
+
+
+def resolve_base64_mode(solution_root: Path | None = None) -> tuple[bool, str]:
+    """
+    Effective base64 mode for ContextBundler.
+    Precedence: env TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64
+                > Governance ContextBundler_output_base64
+                > default false.
+    Accepts true/false/1/0/yes/no (case-insensitive, surrounding whitespace).
+    Invalid values are ignored and fall through to the next level.
+    """
+    # 1. Environment variable (highest priority)
+    env_val = os.environ.get("TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64")
+    parsed = _parse_boolish(env_val) if env_val is not None else None
+    if parsed is not None:
+        return parsed, "env"
+
+    # 2. Governance file
+    if solution_root is None:
+        # Best-effort: derive from this script location
+        artefacts = Path(__file__).resolve().parent
+        solution_root = artefacts.parent.parent
+    gov_val = _read_governance_base64(solution_root)
+    if gov_val is not None:
+        return gov_val, "governance"
+
+    # 3. Default
+    return False, "default"
 
 
 configure_utf8_stdio()
@@ -166,7 +235,7 @@ def run_context_bundler() -> int:
         return 1
 
     # Eseguiamo move-to-history.py per archiviare i file residui della sessione precedente
-    move_script = ARTEFACTS_ROOT/ "move-to-history.py"
+    move_script = ARTEFACTS_ROOT / "move-to-history.py"
     if move_script.exists():
         log(f"==> Esecuzione di {move_script.name}...")
         move_result = subprocess.run(
@@ -181,13 +250,16 @@ def run_context_bundler() -> int:
         log(f"==> ERRORE: Script di archiviazione {move_script.name} non trovato")
         return 1
 
-    log(f"==> Lancio ContextBundler: {CONTEXT_BUNDLER_EXE.name}")
-    # Stesso comportamento del vecchio context-bundler.cmd: nessun argomento,
-    # ContextBundler (SmartAssFileResolver) cerca già in Downloads.
+    to_base64, source = resolve_base64_mode(SOLUTION_ROOT)
+    cmd = [str(CONTEXT_BUNDLER_EXE)]
+    if to_base64:
+        cmd.append("--base64")
+
+    log(f"==> Lancio ContextBundler: {CONTEXT_BUNDLER_EXE.name}  (base64={to_base64}, source={source})")
+    # Nessun argomento posizionale: ContextBundler (SmartAssFileResolver) cerca già in Downloads.
     try:
         result = subprocess.run(
-            #[str(CONTEXT_BUNDLER_EXE), "--base64"],
-            [str(CONTEXT_BUNDLER_EXE)],
+            cmd,
             cwd=str(UTILITY_ROOT),
             check=False,
             env=utf8_child_env(),
@@ -219,7 +291,7 @@ def run_process_zip_and_scripts() -> int:
 # ---------------------------------------------------------------------------
 def main() -> int:
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("=== process-from-llm v1.3 (Python) - orchestratore unificato ===")
+    log("=== process-from-llm v1.5 (Python) - orchestratore unificato ===")
     log(f"Esecuzione avviata: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"Solution Root : {SOLUTION_ROOT}")
     log(f"Utility Root  : {UTILITY_ROOT}")
@@ -313,4 +385,3 @@ if __name__ == "__main__":
     except Exception as exc:
         log(f"ERRORE non gestito: {exc}")
         sys.exit(1)
-

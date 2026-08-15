@@ -2,13 +2,13 @@
 title: skill-tools-use-channels-a-b
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 2.0.0
-updated: 2026-08-13
+version: 2.1.2
+updated: 2026-08-15
 audience: LLM
-mode: Channel A + Channel B
+mode: Channel A + B
 ---
 
-# CatSW Tools: Channel A + Channel B
+# TurboAI Tools: Channel A + B
 
 ## Channel A orchestration preface
 
@@ -36,17 +36,7 @@ When no Channel A is used, Channel B may execute the complete task itself under 
 
 ---
 
----
-title: skill-tools-use-channels-b
-copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
-author: IK0VCK
-version: 2.0.0
-updated: 2026-08-13
-audience: LLM
-mode: Channel B
----
-
-# CatSW Tools: Channel B
+# TurboAI Tools: Channel B
 
 ## 1. Role and authority
 
@@ -70,9 +60,32 @@ If the user corrects a proposal, stop the wrong path and apply the correction. `
 
 ## 3. Session and context
 
-Use one existing PowerShell session in `<repo-root>\.catsw-utility`; do not request a second console or unnecessary directory changes.
+TurboAiWorkingRoot is the path one level up of .catsw-utility, the folder where the user operates. All relative paths, in .ai-context files and in bundle output, are relative to it.
 
-At startup:
+The user can use a PowerShell session in `<TurboAiWorkingRoot>\.catsw-utility` to execute needed commands.
+
+### Large content reads
+
+When a tool used to read a file, bundle or command output may truncate large
+content (e.g. beyond a size threshold, often from the middle), do not treat
+an unexpectedly short or incomplete-looking section as a confirmed property
+of the source. Check for continuity (line numbers, markers, expected
+structure) before drawing conclusions from it, and if in doubt verify with a
+bounded/ranged read or an independent size check before reporting a data
+problem to the user.
+
+### File inventory (mandatory when source layout is unknown)
+
+When the task requires source that is not already present in the startup bundle and the exact paths are not known:
+
+1. Do **not** invent paths or request speculative files.
+2. Instruct the user to run `.catsw-utility\list-files.cmd` from .catsw-utility and attach the resulting `ls.txt`.
+3. Only after receiving the inventory, produce a precise `context-request-*.md` containing the exact relative paths needed for the current task (max 3 same-level batches when practical).
+
+This sequence is the default discovery path for any T* task that touches code outside the files already bundled at session start.
+
+### At startup:
+
 1. Read the startup bundle, `SOLUTION_GOVERNANCE.md`, active plan and included skill before asking for anything else.
 2. If `ls.txt` is already included, do not request it again.
 3. Compare plan status, sole `<next_task>` marker, governance state, known baseline and current scope.
@@ -82,8 +95,7 @@ At startup:
 
 ContextBundler requests:
 - downloadable `context-request-<description>.md`, LF;
-- exact paths only unless the installed bundler explicitly supports wildcards;
-- at most three same-level file requests when practical and never same-name collisions;
+- exact paths only no wildchards supported;
 - use native Base64 output for channels that alter angle-bracket fences or embedded code;
 - decode and verify the bundle before reconstructing files.
 
@@ -139,7 +151,7 @@ Before delivery verify: physical name, link label, entries, relative paths, sing
 Use targeted `rg` first when enough. For multi-command PowerShell:
 - start with `cls`;
 - write the first section with `>` and later sections with `>>` into the current user's `Downloads\ToLlm.txt`;
-- For a single ad-hoc discovery command, pipe through `Tee-Object -Variable stdout | Set-Clipboard` so the output is visible on screen before it lands in the clipboard, never `Out-Null`, unless the output is too large.
+- For a single ad-hoc discovery command, pipe through ` | Set-Clipboard -PassThru` so the output is visible on screen before it lands in the clipboard.
 - include readable command headers and `2>&1` where useful;
 - do not continue tests after failed restore/build;
 - end with `Write-Host "Premi Invio o ESC 😄"` and a blank source line.
@@ -166,11 +178,11 @@ Do not commit until verification is positive. Commit boundaries and messages fol
 `SOLUTION_GOVERNANCE.md` and the active plan are part of every task lifecycle, not optional final cleanup.
 
 At each task or milestone transition:
-- move the sole `<next_task>` block to the next task;
-- keep plan frontmatter, initiative status, active/historical assessment and startup context coherent;
-- update `SOLUTION_GOVERNANCE.md` automatically when the operational state changes;
+- ask the user to move the sole `<next_task>` block to the next task, don't read the full plan;
+- ask the user to keep plan frontmatter, initiative status, active/historical assessment and startup context coherent;
+- ask the user to update `SOLUTION_GOVERNANCE.md` when the operational state changes;
 - preserve permanent rules and historical context;
-- ensure a new session can resume without user memory.
+- ensure a new session can resume haved saved all the needed info in SOLUTION_GOVERNANCE by the user (ask the user to update the file if needed!).
 
 Do not declare completion until code, verification, plan and governance describe the same state. Final closure sets the plan to `COMPLETED`, moves the marker to `T42 - Piano Completato`, converts active context to historical context and removes obsolete startup obligations.
 

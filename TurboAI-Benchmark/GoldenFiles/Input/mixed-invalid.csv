@@ -1,0 +1,4 @@
+TransactionId,CustomerId,Category,Amount,Quantity,Timestamp
+V001,C001,Hardware,10.00,2,2026-08-01T10:00:00Z
+V002,,Software,5.00,1,2026-08-01T11:00:00Z
+V003,C002,Services,4.00,3,2026-08-01T12:00:00Z

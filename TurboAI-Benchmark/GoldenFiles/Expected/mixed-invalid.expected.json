@@ -1,0 +1,69 @@
+{
+  "records": [
+    {
+      "transactionId": "V001",
+      "customerId": "C001",
+      "category": "Hardware",
+      "amount": 10.0,
+      "quantity": 2,
+      "lineAmount": 20.0,
+      "timestampUtc": "2026-08-01T10:00:00Z"
+    },
+    {
+      "transactionId": "V003",
+      "customerId": "C002",
+      "category": "Services",
+      "amount": 4.0,
+      "quantity": 3,
+      "lineAmount": 12.0,
+      "timestampUtc": "2026-08-01T12:00:00Z"
+    }
+  ],
+  "summary": {
+    "recordCount": 2,
+    "invalidRecordCount": 1,
+    "totalAmount": 32.0,
+    "totalQuantity": 5,
+    "averageLineAmount": 16.0,
+    "minimumLineAmount": 12.0,
+    "maximumLineAmount": 20.0,
+    "periodStartUtc": "2026-08-01T10:00:00Z",
+    "periodEndUtc": "2026-08-01T12:00:00Z",
+    "byCustomer": [
+      {
+        "key": "C001",
+        "recordCount": 1,
+        "totalQuantity": 2,
+        "totalAmount": 20.0
+      },
+      {
+        "key": "C002",
+        "recordCount": 1,
+        "totalQuantity": 3,
+        "totalAmount": 12.0
+      }
+    ],
+    "byCategory": [
+      {
+        "key": "Hardware",
+        "recordCount": 1,
+        "totalQuantity": 2,
+        "totalAmount": 20.0
+      },
+      {
+        "key": "Services",
+        "recordCount": 1,
+        "totalQuantity": 3,
+        "totalAmount": 12.0
+      }
+    ]
+  },
+  "issues": [
+    {
+      "lineNumber": 3,
+      "code": "RequiredField",
+      "field": "CustomerId",
+      "message": "CustomerId is required."
+    }
+  ]
+}

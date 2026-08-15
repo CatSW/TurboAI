@@ -1,0 +1,92 @@
+{
+  "records": [
+    {
+      "transactionId": "T007",
+      "customerId": "C001",
+      "category": "Hardware",
+      "amount": 10.0,
+      "quantity": 2,
+      "lineAmount": 20.0,
+      "timestampUtc": "2026-08-01T08:00:00Z"
+    },
+    {
+      "transactionId": "T008",
+      "customerId": "C002",
+      "category": "Hardware",
+      "amount": 15.0,
+      "quantity": 1,
+      "lineAmount": 15.0,
+      "timestampUtc": "2026-08-01T09:00:00Z"
+    },
+    {
+      "transactionId": "T009",
+      "customerId": "C003",
+      "category": "Software",
+      "amount": 7.5,
+      "quantity": 4,
+      "lineAmount": 30.0,
+      "timestampUtc": "2026-08-02T08:00:00Z"
+    },
+    {
+      "transactionId": "T010",
+      "customerId": "C002",
+      "category": "Services",
+      "amount": 20.0,
+      "quantity": 3,
+      "lineAmount": 60.0,
+      "timestampUtc": "2026-08-03T08:00:00Z"
+    }
+  ],
+  "summary": {
+    "recordCount": 4,
+    "invalidRecordCount": 0,
+    "totalAmount": 125.0,
+    "totalQuantity": 10,
+    "averageLineAmount": 31.25,
+    "minimumLineAmount": 15.0,
+    "maximumLineAmount": 60.0,
+    "periodStartUtc": "2026-08-01T08:00:00Z",
+    "periodEndUtc": "2026-08-03T08:00:00Z",
+    "byCustomer": [
+      {
+        "key": "C001",
+        "recordCount": 1,
+        "totalQuantity": 2,
+        "totalAmount": 20.0
+      },
+      {
+        "key": "C002",
+        "recordCount": 2,
+        "totalQuantity": 4,
+        "totalAmount": 75.0
+      },
+      {
+        "key": "C003",
+        "recordCount": 1,
+        "totalQuantity": 4,
+        "totalAmount": 30.0
+      }
+    ],
+    "byCategory": [
+      {
+        "key": "Hardware",
+        "recordCount": 2,
+        "totalQuantity": 3,
+        "totalAmount": 35.0
+      },
+      {
+        "key": "Services",
+        "recordCount": 1,
+        "totalQuantity": 3,
+        "totalAmount": 60.0
+      },
+      {
+        "key": "Software",
+        "recordCount": 1,
+        "totalQuantity": 4,
+        "totalAmount": 30.0
+      }
+    ]
+  },
+  "issues": []
+}

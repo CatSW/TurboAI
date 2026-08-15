@@ -1,0 +1,17 @@
+{
+  "records": [],
+  "summary": {
+    "recordCount": 0,
+    "invalidRecordCount": 0,
+    "totalAmount": 0,
+    "totalQuantity": 0,
+    "averageLineAmount": 0.0,
+    "minimumLineAmount": null,
+    "maximumLineAmount": null,
+    "periodStartUtc": null,
+    "periodEndUtc": null,
+    "byCustomer": [],
+    "byCategory": []
+  },
+  "issues": []
+}

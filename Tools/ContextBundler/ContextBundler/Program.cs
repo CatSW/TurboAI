@@ -12,6 +12,11 @@
 // --base64: scrive l'output finale (file o stdout) come stringa base64 del bundle invece del testo UTF-8.
 //           Compatibile con --stdout.
 //
+// Env session override (T4.2):
+//   TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64=true|false
+//   Precedence: CLI --base64 > env session > default false.
+//   Propagated to child processes via process environment (no persistence).
+//
 // smart-ass mode: se lanciato senza argomenti posizionali, seleziona il file
 // context-request*.md piu' recente nella directory corrente e genera automaticamente
 // context-out-<desc>.md, dove <desc> e' la parte del nome successiva a "context-request-".
@@ -24,13 +29,38 @@ using ContextBundler.Constants;
 using ContextBundler.Services;
 
 bool toStdout = args.Contains("--stdout");
-bool toBase64 = args.Contains("--base64");
-var positional = args.Where(a => a != "--stdout" && a != "--base64").ToArray();
+bool cliBase64 = args.Contains("--base64");
+var positional = args.Where(a => a is not "--stdout" and not "--base64").ToArray();
+
+// T4.2: resolve effective base64 mode with precedence CLI > env > default
+bool toBase64;
+string base64Source;
+if (cliBase64)
+{
+    toBase64 = true;
+    base64Source = "cli";
+}
+else
+{
+    var envVal = Environment.GetEnvironmentVariable("TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64");
+    if (!string.IsNullOrWhiteSpace(envVal) &&
+        bool.TryParse(envVal.Trim(), out var envBool))
+    {
+        toBase64 = envBool;
+        base64Source = "env";
+    }
+    else
+    {
+        toBase64 = false;
+        base64Source = "default";
+    }
+}
 
 if (positional.Length == 0)
 {
     var resolved = SmartAssFileResolver.TryResolve(Console.Error.WriteLine);
-    if (resolved is null) return 1;
+    if (resolved is null)
+        return 1;
     positional = resolved;
 }
 
@@ -47,9 +77,13 @@ var outputFile = positional.Length > 2 ? positional[2] : Path.Combine(rootPath, 
 void Log(string msg)
 {
     // se il bundle esce su stdout, i messaggi di stato vanno su stderr per non sporcare la pipe
-    if (toStdout) Console.Error.WriteLine(msg);
-    else Console.WriteLine(msg);
+    if (toStdout)
+        Console.Error.WriteLine(msg);
+    else
+        Console.WriteLine(msg);
 }
+
+Log($"ContextBundler output mode: base64={toBase64} (source={base64Source})");
 
 if (!File.Exists(inputFile))
 {
@@ -82,43 +116,50 @@ var w = result.Warnings;
 if (w.Missing.Count > 0)
 {
     Log("File non trovati (verifica i path relativi a rootPath):");
-    foreach (var m in w.Missing) Log($"  - {m}");
+    foreach (var m in w.Missing)
+        Log($"  - {m}");
 }
 
 if (w.SkippedBinary.Count > 0)
 {
     Log("File binari esclusi automaticamente:");
-    foreach (var b in w.SkippedBinary) Log($"  - {b}");
+    foreach (var b in w.SkippedBinary)
+        Log($"  - {b}");
 }
 
 if (w.Secret.Count > 0)
 {
     Log("Possibili dati sensibili nel bundle (verifica prima di incollarlo in chat):");
-    foreach (var s in w.Secret) Log($"  - {s}");
+    foreach (var s in w.Secret)
+        Log($"  - {s}");
 }
 
 if (w.Mojibake.Count > 0)
 {
     Log("Possibili sequenze di mojibake rilevate (UTF-8 riletto con encoding errato), verifica manuale consigliata:");
-    foreach (var m in w.Mojibake) Log($"  - {m}");
+    foreach (var m in w.Mojibake)
+        Log($"  - {m}");
 }
 
 if (w.LiteralControl.Count > 0)
 {
     Log("Sequenze di controllo letterali (\\r \\n \\t) rilevate in code span, contenuto non alterato:");
-    foreach (var l in w.LiteralControl) Log($"  - {l}");
+    foreach (var l in w.LiteralControl)
+        Log($"  - {l}");
 }
 
 if (w.Json.Count > 0)
 {
     Log("File .json con validazione JSON fallita (prima e/o dopo l'inclusione nel bundle):");
-    foreach (var j in w.Json) Log($"  - {j}");
+    foreach (var j in w.Json)
+        Log($"  - {j}");
 }
 
 if (w.MdFence.Count > 0)
 {
     Log("File .md con possibile fence Markdown non chiuso (numero dispari di marcatori):");
-    foreach (var f in w.MdFence) Log($"  - {f}");
+    foreach (var f in w.MdFence)
+        Log($"  - {f}");
 }
 
 return 0;

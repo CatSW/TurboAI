@@ -1,0 +1,71 @@
+{
+  "records": [
+    {
+      "transactionId": "T001",
+      "customerId": "C001",
+      "category": "Hardware",
+      "amount": 125.5,
+      "quantity": 2,
+      "lineAmount": 251.0,
+      "timestampUtc": "2026-08-01T10:15:00Z"
+    },
+    {
+      "transactionId": "T002",
+      "customerId": "C001",
+      "category": "Software",
+      "amount": 49.99,
+      "quantity": 1,
+      "lineAmount": 49.99,
+      "timestampUtc": "2026-08-01T11:30:00Z"
+    },
+    {
+      "transactionId": "T003",
+      "customerId": "C002",
+      "category": "Hardware",
+      "amount": 80.0,
+      "quantity": 4,
+      "lineAmount": 320.0,
+      "timestampUtc": "2026-08-02T09:10:00Z"
+    }
+  ],
+  "summary": {
+    "recordCount": 3,
+    "invalidRecordCount": 0,
+    "totalAmount": 620.99,
+    "totalQuantity": 7,
+    "averageLineAmount": 207.0,
+    "minimumLineAmount": 49.99,
+    "maximumLineAmount": 320.0,
+    "periodStartUtc": "2026-08-01T10:15:00Z",
+    "periodEndUtc": "2026-08-02T09:10:00Z",
+    "byCustomer": [
+      {
+        "key": "C001",
+        "recordCount": 2,
+        "totalQuantity": 3,
+        "totalAmount": 300.99
+      },
+      {
+        "key": "C002",
+        "recordCount": 1,
+        "totalQuantity": 4,
+        "totalAmount": 320.0
+      }
+    ],
+    "byCategory": [
+      {
+        "key": "Hardware",
+        "recordCount": 2,
+        "totalQuantity": 6,
+        "totalAmount": 571.0
+      },
+      {
+        "key": "Software",
+        "recordCount": 1,
+        "totalQuantity": 1,
+        "totalAmount": 49.99
+      }
+    ]
+  },
+  "issues": []
+}

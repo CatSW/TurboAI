@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <OutputType>Exe</OutputType>
+    <PlatformTarget>x64</PlatformTarget>
     <RootNamespace>ContextBundler.Tests</RootNamespace>
     <Copyright>© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved. - Licensed under the MIT License</Copyright>
 

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "scenarios": [
+    {
+      "id": "basic",
+      "input": "Input/basic.csv",
+      "expected": "Expected/basic.expected.json",
+      "expectedExitCode": 0,
+      "mode": "success"
+    },
+    {
+      "id": "multiple-customers",
+      "input": "Input/multiple-customers.csv",
+      "expected": "Expected/multiple-customers.expected.json",
+      "expectedExitCode": 0,
+      "mode": "success"
+    },
+    {
+      "id": "unicode",
+      "input": "Input/unicode.csv",
+      "expected": "Expected/unicode.expected.json",
+      "expectedExitCode": 0,
+      "mode": "success"
+    },
+    {
+      "id": "empty",
+      "input": "Input/empty.csv",
+      "expected": "Expected/empty.expected.json",
+      "expectedExitCode": 0,
+      "mode": "success"
+    },
+    {
+      "id": "mixed-invalid",
+      "input": "Input/mixed-invalid.csv",
+      "expected": "Expected/mixed-invalid.expected.json",
+      "expectedExitCode": 0,
+      "mode": "success-with-rejections"
+    },
+    {
+      "id": "invalid-header",
+      "input": "Invalid/invalid-header.csv",
+      "expected": null,
+      "expectedExitCode": 2,
+      "mode": "fatal-no-output"
+    },
+    {
+      "id": "malformed-quote",
+      "input": "Invalid/malformed-quote.csv",
+      "expected": null,
+      "expectedExitCode": 2,
+      "mode": "fatal-no-output"
+    }
+  ]
+}

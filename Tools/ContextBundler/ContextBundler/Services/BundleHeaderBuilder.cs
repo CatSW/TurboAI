@@ -14,7 +14,7 @@ internal static class BundleHeaderBuilder
         header.AppendLine("# CONTEXT BUNDLE");
         header.AppendLine($"# BundleFormatVersion: {BundleFormatConstants.BundleFormatVersion}");
         header.AppendLine($"# ContextBundler V{ver} by IK0VCK @ CatSW");
-        header.AppendLine($"# Repository root: {rootPath}");
+        header.AppendLine($"# TurboAiWorkingRoot: {rootPath}");
         header.AppendLine($"# Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         header.AppendLine($"# Source list: {sourceListName}");
         header.AppendLine($"# MarkdownEscaping: {BundleFormatConstants.MarkdownEscaping}");
