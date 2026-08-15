@@ -1,16 +1,14 @@
 ---
-title: Changelog ContextBundler
+title: Changelog TurboAI
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 type: changelog
 product: Turbo-AI Tools
-solution: ContextBundler
-project: ContextBundler
 version: 1.0
 license: MIT
 updated: 2026-08-15
 ---
-# Changelog ContextBundler
+# Changelog TurboAI
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 

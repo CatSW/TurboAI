@@ -1,7 +1,8 @@
 # TurboAI - Solution Governance
 
 ## Identity
-- Root: `C:\Repo\CatSW\TurboAI`
+- TurboAiWorkingRoot: `C:/Repo/CatSW/TurboAI/`
+- DefaultChangeLogPath: `Documentation/`
 
 ## Active Plan
 - File: `.ai-context/Piano-Multi-Task.md`

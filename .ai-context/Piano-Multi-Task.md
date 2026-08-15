@@ -237,12 +237,11 @@ across CMD, Python, PowerShell where applicable, captured stdout/stderr and `ToL
 2. Documentare chiaramente nelle skill la gerarchia di precedenza dei parametri (Env Variable > Governance > Default `false`).
 3. Aggiornare `Piano-Multi-Task.md` impostando il blocco `<next_task>` sulla Milestone 5 e segnare M4 come completata.
 
-<next_task>
 # M5 - Dynamic changelog context extraction (rework)
 
 ## Confirmed design
 
-- `SOLUTION_GOVERNANCE.md` defines `DefaultChangeLogPath=<path relative to
+- `SOLUTION_GOVERNANCE.md` defines `DefaultChangeLogPath:<path relative to
   TurboAiWorkingRoot>`. This single key covers both the old "TargetProject"
   case (single project) and the "override" case that came out of TurboAI's
   own needs (Documentation/ living at the top level of the root).
@@ -321,17 +320,23 @@ point 4 of the rework protocol.
 
 ---
 
+<next_task>
 ### T5.2 - Implement default/override changelog routing
 
 1. Target Paths
    - `.catsw-utility/artifacts/extract-latest-changelog.py` *(confirm exact path against T5.1 findings before
      starting)*
    - `.ai-context/SOLUTION_GOVERNANCE.md`
-   - `[FROM T5.1: exact hardcoded changelog path/line to remove]`
-   - `[FROM T5.1: any other script found with a hardcoded changelog reference]`
+   - `[FROM T5.1: exact hardcoded changelog path/line to remove]= 
+  startup-llm-session.py, riga ~168 (versione pre-patch): 
+  changelog_src = repo_root / "Documentation" / "Changelog.md"`
+   - `[FROM T5.1: any other script found with a hardcoded changelog reference]= none
+  (rg -il changelog artifacts → solo startup-llm-session.py ed extract-latest-changelog.py,
+  nessun altro file in artifacts)`
 
 2. Context & Dependencies
-   - `[FROM T5.1: current DefaultChangeLogPath state in SOLUTION_GOVERNANCE.md]`
+   - `[FROM T5.1: current DefaultChangeLogPath state in SOLUTION_GOVERNANCE.md]= 
+  assente alla lettura iniziale di questa sessione; ora impostato a "Documentation/`
    - Add `DefaultChangeLogPath=<path relative to TurboAiWorkingRoot>` to governance.
    - Resolution order: if the current task's `<next_task>` block declares `OverrideChangeLogPath`, use it;
      otherwise use `DefaultChangeLogPath`. Re-read fresh on every tool run - never cached.
@@ -359,8 +364,10 @@ point 4 of the rework protocol.
    - Patch ZIP with the operational script under `.catsw-utility/temp/`.
 
 6. Extra Startup Files
-   - `[FROM T5.1: any other script found with a hardcoded changelog reference]`
-
+   - `[FROM T5.1: any other script found with a hardcoded changelog reference]= none
+  (rg -il changelog artifacts → solo startup-llm-session.py ed extract-latest-changelog.py,
+  nessun altro file in artifacts)`
+</next_task>
 ---
 
 ### T5.3 - Implement Keep a Changelog extraction fallback
