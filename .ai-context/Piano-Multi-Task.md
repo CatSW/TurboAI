@@ -369,7 +369,7 @@ point 4 of the rework protocol.
   nessun altro file in artifacts)`
 
 ---
-<next_task>
+
 ### T5.3 - Implement Keep a Changelog extraction fallback
 
 Unchanged from the previous version: 3-level fallback (Unreleased with
@@ -405,9 +405,9 @@ carried over identically from the original plan.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-</next_task>
----
 
+---
+<next_task>
 ### T5.5 - Integrate with startup session and update governance
 
 1. Target Paths
@@ -442,7 +442,7 @@ carried over identically from the original plan.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
 ### M6 - Previous-run artifact rotation and stale-artifact cleanup

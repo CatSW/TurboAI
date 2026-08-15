@@ -14,6 +14,10 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased] - 2026-08-15
 
+### Added
+
+- implementata - M5 - T5.4 Add simulated routing and extraction tests
+- implementata - M5 - T5.3 Implement Keep a Changelog extraction fallback
 - implementata - M5 - T5.2 Implement default/override changelog routing
 - implementata - M5 - T5.1 Assess installed changelog and startup tools
 - git-check.cmd 1.2 : scrive anche TurboAiWorkingRoot
