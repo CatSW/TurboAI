@@ -6,28 +6,35 @@ type: changelog
 product: Turbo-AI Tools
 version: 1.0
 license: MIT
-updated: 2026-08-15
+updated: 2026-08-16
 ---
 # Changelog TurboAI
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased] - 2026-08-15
+## [Unreleased] - 2026-08-16
+
+- lavoro su piano - TurboAI utility toolchain v3.0 - FromLlm ZIP retention and temp execution - e altro aggiunto in corso d'opera
 
 ### Added
 
+- implementata - M5 - T5.5 - Integrate with startup session and update governance - M5 completata
 - implementata - M5 - T5.4 Add simulated routing and extraction tests
 - implementata - M5 - T5.3 Implement Keep a Changelog extraction fallback
 - implementata - M5 - T5.2 Implement default/override changelog routing
 - implementata - M5 - T5.1 Assess installed changelog and startup tools
-- git-check.cmd 1.2 : scrive anche TurboAiWorkingRoot
-- ContextBundler scrive anche TurboAiWorkingRoot
-- aggiornamenti skill e doc
 - implementata - M4 - Configurable ContextBundler output mode
 - implementata - M3 - Regression tests
 - implementata - M2 - Execute the script directly from the ZIP-defined temp path
 - implementata - M1 - Archive the ZIP before extraction
-- lavoro su piano - TurboAI utility toolchain v3.0 - FromLlm ZIP retention and temp execution - e altro aggiunto in corso d'opera
+
+### Changed
+
+- list-files.py v1.3
+- list-files.cmd v1.1
+- git-check.cmd v1.2 : scrive anche TurboAiWorkingRoot
+- ContextBundler.exe v1.3 scrive anche TurboAiWorkingRoot
+- aggiornamenti skill e doc
 
 ## [1.0.4] - 2026-08-13
 

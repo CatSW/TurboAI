@@ -363,3 +363,6 @@ history/
 .catsw-utility/temp/
 .catsw-utility/ToLlm*
 .catsw-utility/docs/bozze-idee/
+ToolsTests/skill-verification/.catsw-utility/
+ToolsTests/skill-verification/reports/**
+!ToolsTests/skill-verification/reports/.gitkeep

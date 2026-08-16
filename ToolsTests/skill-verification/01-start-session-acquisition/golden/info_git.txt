@@ -1,0 +1,7 @@
+# Git status - fixture
+
+## git log --oneline -5
+a1b2c3d [demowidget-T1.0] Initial scaffold
+
+## git status -sb
+## main...origin/main

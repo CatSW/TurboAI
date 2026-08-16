@@ -1,23 +1,18 @@
 #!/usr/bin/env pwsh
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.0
-# Eseguire tramite il relativo launcher .cmd.
-# Produce ls.txt nella cartella Download dell'utente corrente,
-# con informazioni Git e con l'elenco ricorsivo dei file:
-# path relativo + dimensione file (KB), escludendo cartelle di build/tooling.
-# La dimensione serve a valutare a colpo d'occhio se un file
-# e' abbastanza grande da giustificare un estratto mirato invece del bundle intero.
-cls
+# Version 1.3
 
+param (
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('TurboAi-Tools', 'ContextBundler')]
+    [string]$Mode
+)
+
+cls
 $ErrorActionPreference = 'Stop'
 
 try {
-    $exclude = 'bin', 'obj', '\.git', '\.vs', 'packages', 'TestResults', 'node_modules', 'artifacts', '\.idea'
-    $pattern = ($exclude -join '|')
-
-    # Lo script si trova in:
-    # <solution-root>\.catsw-utility\artefacts\list-files.ps1
     $solutionRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 
     if (-not (Test-Path -LiteralPath (Join-Path $solutionRoot '.git'))) {
@@ -25,7 +20,6 @@ try {
     }
 
     $downloadsFolder = (New-Object -ComObject Shell.Application).Namespace('shell:Downloads')
-
     if ($null -eq $downloadsFolder) {
         throw "Impossibile individuare la cartella Download dell'utente corrente."
     }
@@ -33,60 +27,58 @@ try {
     $downloadsPath = $downloadsFolder.Self.Path
     $outputFile = Join-Path $downloadsPath 'ls.txt'
 
-    "Solution root: $solutionRoot" |
-        Set-Content -Path $outputFile -Encoding UTF8
+    $cultureInfo = [System.Globalization.CultureInfo]::GetCultureInfo('it-IT')
+    $filesToInclude = @()
 
-    " " |
-        Add-Content -Path $outputFile -Encoding UTF8
+    if ($Mode -eq 'TurboAi-Tools') {
+        $utilityFolder = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+        
+        # File .cmd nel folder principale (.catsw-utility)
+        $cmdFiles = Get-ChildItem -LiteralPath $utilityFolder -File -Filter "*.cmd"
+        
+        # File .py e .ps1 nella sottocartella artifacts
+        $artifactFiles = Get-ChildItem -LiteralPath $PSScriptRoot -File | 
+            Where-Object { $_.Extension -match '^\.(py|ps1)$' }
 
-    "git status --short" |
-        Add-Content -Path $outputFile -Encoding UTF8
+        $filesToInclude = $cmdFiles + $artifactFiles
+    }
+    elseif ($Mode -eq 'ContextBundler') {
+        $targetDir = Join-Path $solutionRoot 'Tools\ContextBundler'
 
-    $gitStatus = git -C $solutionRoot status --short 2>&1
+        if (-not (Test-Path -LiteralPath $targetDir)) {
+            throw "La directory $targetDir non esiste."
+        }
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "Errore durante l'esecuzione di 'git status --short':`n$($gitStatus -join [System.Environment]::NewLine)"
+        $allowedExtensions = @('.slnx', '.csproj', '.csprj', '.json', '.xml', '.md', '.cs')
+        $excludeFolders = @('bin', 'obj', 'packages', 'TestResults', 'node_modules', 'artifacts', '.catsw-utility', '.ai-context', '.turbo-ai')
+
+        $pattern = ($excludeFolders | ForEach-Object { [regex]::Escape($_) }) -join '|'
+
+        $filesToInclude = Get-ChildItem -LiteralPath $targetDir -Recurse -File | Where-Object {
+            $ext = $_.Extension.ToLower()
+            $isAllowed = $allowedExtensions -contains $ext
+            $isNotExcluded = $_.FullName -notmatch "\\($pattern)(\\|$)"
+            return $isAllowed -and $isNotExcluded
+        }
     }
 
-    $gitStatus |
-        Add-Content -Path $outputFile -Encoding UTF8
+    $lines = @("Solution root: $solutionRoot", "")
 
-    " " |
-        Add-Content -Path $outputFile -Encoding UTF8
-
-    "git log -1 --oneline" |
-        Add-Content -Path $outputFile -Encoding UTF8
-
-    $gitLog = git -C $solutionRoot log -1 --oneline 2>&1
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "Errore durante l'esecuzione di 'git log -1 --oneline':`n$($gitLog -join [System.Environment]::NewLine)"
+    # Ordinamento per LastWriteTime decrescente
+    $fileLines = $filesToInclude | Sort-Object LastWriteTime -Descending | ForEach-Object {
+        $relativePath = [System.IO.Path]::GetRelativePath($solutionRoot, $_.FullName)
+        $kb = [System.Math]::Round($_.Length / 1KB, 1)
+        $kbFormatted = $kb.ToString("0.0", $cultureInfo)
+        $dateFormatted = $_.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+        
+        "{0}  {1} ({2} KB)" -f $dateFormatted, $relativePath, $kbFormatted
     }
 
-    $gitLog |
-        Add-Content -Path $outputFile -Encoding UTF8
-
-    " " |
-        Add-Content -Path $outputFile -Encoding UTF8
-
-    Get-ChildItem -LiteralPath $solutionRoot -Recurse -File |
-        Where-Object {
-            $_.FullName -notmatch "\\($pattern)\\"
-        } |
-        ForEach-Object {
-            $relativePath = [System.IO.Path]::GetRelativePath(
-                $solutionRoot,
-                $_.FullName
-            )
-
-            $kb = [System.Math]::Round($_.Length / 1KB, 1)
-
-            "{0} ({1} KB)" -f $relativePath, $kb
-        } |
-        Sort-Object |
-        Add-Content -Path $outputFile -Encoding UTF8
+    $lines += $fileLines
+    $lines | Set-Content -Path $outputFile -Encoding UTF8
 
     Write-Host ""
+    Write-Host "Modalita: $Mode" -ForegroundColor Cyan
     Write-Host "Root della solution: $solutionRoot" -ForegroundColor DarkGray
     Write-Host "Elenco generato in: $outputFile" -ForegroundColor Green
 }

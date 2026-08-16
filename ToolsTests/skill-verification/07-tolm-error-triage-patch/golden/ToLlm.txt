@@ -1,0 +1,5 @@
+Executing startup...
+Traceback (most recent call last):
+  File "src/divider.py", line 2, in safe_divide
+    return a / b
+ZeroDivisionError: division by zero

@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
+# Licensed under the MIT License. See LICENSE file in the project root for full license information.
+# Version 1.0
+"""
+Validatori condivisi per gli scenari di skill-verification.
+Ogni funzione ritorna (ok: bool, dettagli: list[str]). Sono controlli
+strutturali/euristici: verificano il FORMATO, non la correttezza semantica
+del lavoro dell'LLM (quella resta giudizio umano, vedi scenario.md).
+"""
+
+from __future__ import annotations
+
+import re
+import zipfile
+from pathlib import Path
+
+WILDCARD_CHARS = ("*", "?")
+NL_MARKERS = (
+    "includ", "cerca", "trova", "assicurati", "per ogni", "tutti i file",
+    "search", "include", "ensure", "for every", "ricerca mirata",
+)
+
+
+def check_context_request(text: str, expected_paths: set[str] | None = None) -> tuple[bool, list[str]]:
+    """
+    Verifica una context-request: solo path relativi, uno per riga, nessuna
+    wildcard, nessuna istruzione in linguaggio naturale. Se expected_paths
+    e' dato, segnala path non presenti nella fixture (inventati).
+    """
+    issues: list[str] = []
+    lines = [l.strip() for l in text.splitlines() if l.strip() and not l.strip().startswith("#")]
+    request_paths: list[str] = []
+    for line in lines:
+        low = line.lower()
+        if any(c in line for c in WILDCARD_CHARS):
+            issues.append(f"Wildcard non supportata nella riga: {line!r}")
+            continue
+        if any(m in low for m in NL_MARKERS) or len(line.split()) > 8:
+            issues.append(f"Sembra prosa/istruzione in linguaggio naturale, non un path: {line!r}")
+            continue
+        request_paths.append(line.lstrip("-*• ").strip("`"))
+    if not request_paths:
+        issues.append("Nessun path riconosciuto come richiesta file nel testo fornito.")
+    if expected_paths is not None:
+        unknown = sorted(p for p in request_paths if p not in expected_paths)
+        if unknown:
+            issues.append(f"Path richiesti non presenti nella fixture (inventati?): {unknown}")
+    return (len(issues) == 0), issues
+
+
+def check_fromllm_zip(zip_path: Path) -> tuple[bool, list[str]]:
+    """
+    Verifica il contratto FromLlm ZIP (skill-uso-tools.md §6):
+    nome FromLlm-*.zip, nessuna directory contenitore, al massimo uno
+    script operativo sotto .catsw-utility/temp/FromLlm-*.py|.ps1, nessun
+    path assoluto/traversal, nessuna entry a dimensione zero.
+    """
+    issues: list[str] = []
+    if not zip_path.name.startswith("FromLlm-"):
+        issues.append(f"Nome file non conforme (atteso FromLlm-<descrizione>.zip): {zip_path.name}")
+    if not zip_path.is_file():
+        return False, [f"File non trovato: {zip_path}"]
+    try:
+        with zipfile.ZipFile(zip_path) as zf:
+            infos = zf.infolist()
+            if not infos:
+                issues.append("ZIP vuoto.")
+            scripts: list[str] = []
+            for info in infos:
+                name = info.filename.replace("\\", "/")
+                first_seg = name.split("/")[0]
+                if name.startswith("/") or ":" in first_seg or ".." in name.split("/"):
+                    issues.append(f"Path assoluto o traversal sospetto: {name}")
+                if info.file_size == 0 and not name.endswith("/"):
+                    issues.append(f"File a dimensione zero: {name}")
+                if re.match(r"^\.catsw-utility/temp/FromLlm-.*\.(py|ps1)$", name):
+                    scripts.append(name)
+                elif name.endswith((".py", ".ps1")) and "temp/" in name:
+                    issues.append(f"Script fuori dalla posizione attesa .catsw-utility/temp/: {name}")
+            if len(scripts) > 1:
+                issues.append(f"Piu' di uno script operativo nello ZIP: {scripts}")
+    except zipfile.BadZipFile:
+        issues.append("Il file non e' uno ZIP valido.")
+    return (len(issues) == 0), issues
+
+
+def check_script_conventions(text: str) -> tuple[bool, list[str]]:
+    """
+    Verifica euristica delle convenzioni per script Python generati
+    (skill-uso-tools.md §5): deriva i path dalla propria posizione,
+    configura stdout/stderr UTF-8, non hardcoda path utente/repo assoluti.
+    """
+    issues: list[str] = []
+    if "__file__" not in text:
+        issues.append("Non deriva i path dalla propria posizione (__file__ non trovato).")
+    if not re.search(r"reconfigure\(encoding=.utf-8.", text, re.IGNORECASE) and "PYTHONUTF8" not in text:
+        issues.append("Nessuna configurazione esplicita UTF-8 per stdout/stderr trovata.")
+    hardcoded = re.findall(r"[A-Za-z]:\\Users\\[^\"'\s]+", text)
+    if hardcoded:
+        issues.append(f"Possibile path utente hardcoded: {hardcoded}")
+    return (len(issues) == 0), issues
+
+
+def write_report(report_path: Path, scenario: str, llm_name: str, ok: bool, issues: list[str], notes: str = "") -> None:
+    lines = [
+        f"# Report - {scenario}",
+        f"- LLM: {llm_name}",
+        f"- Esito controlli automatici: {'PASS' if ok else 'FAIL'}",
+        "",
+        "## Dettagli",
+    ]
+    lines += [f"- {i}" for i in issues] if issues else ["- Nessun problema rilevato dai controlli automatici."]
+    if notes:
+        lines += ["", "## Note", notes]
+    report_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    print(f"Report scritto: {report_path}")

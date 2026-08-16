@@ -1,0 +1,4 @@
+# ls.txt - generato 2026-08-16
+src/calc.py
+src/utils.py
+src/config.json

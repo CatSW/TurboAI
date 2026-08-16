@@ -407,7 +407,7 @@ carried over identically from the original plan.
    - None beyond Target Paths.
 
 ---
-<next_task>
+
 ### T5.5 - Integrate with startup session and update governance
 
 1. Target Paths
@@ -442,9 +442,9 @@ carried over identically from the original plan.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-</next_task>
----
 
+---
+<next_task>
 ### M6 - Previous-run artifact rotation and stale-artifact cleanup
 
 #### T6.1 - Consolidate the rotation contract
@@ -473,7 +473,7 @@ carried over identically from the original plan.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
 #### T6.2 - Add timestamped root and temp rotation
