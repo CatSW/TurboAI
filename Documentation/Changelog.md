@@ -18,6 +18,11 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ### Added
 
+- implementata - M6 - T6.5 - Add rotation regression tests - M6 chiusa
+- implementata - M6 - T6.4 - Remove duplicate Python cleanup
+- implementata - M6 - T6.3 - Centralize automatic invocation in wrappers
+- implementata - M6 - T6.2 - Add timestamped root and temp rotation
+- implementata - M6 - T6.1 - Consolidate the rotation contract
 - implementata - M5 - T5.5 - Integrate with startup session and update governance - M5 completata
 - implementata - M5 - T5.4 Add simulated routing and extraction tests
 - implementata - M5 - T5.3 Implement Keep a Changelog extraction fallback
@@ -30,6 +35,10 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ### Changed
 
+- process-from-llm.py v1.6
+- aaa-startup-llm-session.cmd v1.2
+- move-to-history.py v1.1 T6.1 + T6.2
+- TickTack.cmd v1.1
 - list-files.py v1.3
 - list-files.cmd v1.1
 - git-check.cmd v1.2 : scrive anche TurboAiWorkingRoot

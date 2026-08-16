@@ -93,9 +93,15 @@ This sequence is the default discovery path for any T* task that touches code ou
 5. Clear state: proceed without confirmation.
 6. Missing but recoverable context: request only the minimum exact paths or targeted search.
 
+### Delivering generated files
+
+Always make downloadable artifacts actually downloadable for the user (native channel mechanism).  
+Never leave only a plain filename. After the artifact write the exact line `Allega context-out` or `Allega ToLlm`.
+
 ContextBundler requests:
-- downloadable `context-request-<description>.md`, LF;
+- generate a downloadable `context-request-<description>.md`, LF;
 - exact paths only no wildchards supported;
+- don't insert other text at limit a succint comment like "# files needed for M4-T4.2 implementation"
 - use native Base64 output for channels that alter angle-bracket fences or embedded code;
 - decode and verify the bundle before reconstructing files.
 

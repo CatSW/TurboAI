@@ -444,69 +444,58 @@ carried over identically from the original plan.
    - None beyond Target Paths.
 
 ---
-<next_task>
+
 ### M6 - Previous-run artifact rotation and stale-artifact cleanup
 
 #### T6.1 - Consolidate the rotation contract
 
-1. Target Paths
-   - `.catsw-utility/artifacts/move-to-history.py`
-   - `.catsw-utility/move-to-history.cmd`
+TickTack.cmd:
 
-2. Context & Dependencies
-   - Rotation = preventive cleanup of the *previous* run's leftover files, distinct from the ZIP-retention
-     contract implemented in M1 (which archives the *current* run's ZIP, not prior leftovers).
-   - `context-request-*` and `context-out-*` files from the current run must stay available until the next
-     request or the next startup run - rotation must never touch the current run's own files.
+- Rimuovere del /q "%DEST_DIR%ToLlm_*.txt". Eseguire solo la copia verso .catsw-utility/ToLlm_HHMMSS.txt.
 
-3. Implementation Scope
-   - Confirm/refactor `move-to-history.py` so it only rotates files belonging to a run prior to the current
-     one, non-recursively.
-   - Keep `move-to-history.cmd` as the manual entry point calling the same logic.
+move-to-history.py:
 
-4. Acceptance Criteria
-   - Current-run `context-request-*`/`context-out-*` files are never rotated by this contract.
-   - Manual invocation via `move-to-history.cmd` produces the same result as the automatic path.
+- Includere i file ToLlm_*.txt presenti nella radice di .catsw-utility/.
+- Determinare il file ToLlm_*.txt più recente tramite os.path.getmtime e preservarlo.
+- Ruotare tutti gli altri ToLlm_*.txt antecedenti.
+- Per T6.1, mantenere lo spostamento base (gestione collisione _n.ext se il nome esiste già in history/).
 
-5. Delivery Artifacts
-   - Patch ZIP with the operational script under `.catsw-utility/temp/`.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-</next_task>
 ---
 
 #### T6.2 - Add timestamped root and temp rotation
 
-1. Target Paths
-   - `.catsw-utility/artifacts/move-to-history.py` (as consolidated in T6.1 - confirm final shape from T6.1's
-     delivered patch before starting)
-   - `.catsw-utility/temp/`
-   - `.catsw-utility/history/`
+1. **Target Paths**
+* `.catsw-utility/artifacts/move-to-history.py`
+* `.catsw-utility/temp/`
+* `.catsw-utility/history/`
 
-2. Context & Dependencies
-   - Extends T6.1's rotation contract to also catch stray files left in the repository root
-     (`context-request-*`, `context-out-*`, orphaned `FromLlm-*`) and stale `.catsw-utility/temp/FromLlm-*.py`
-     / `.ps1` residues, including residues that predate the full M1-M2 ZIP/temp contract being deployed.
 
-3. Implementation Scope
-   - Archive matched root candidates and stale temp residues into `.catsw-utility/history/`.
-   - Prefix every archived filename with `YYYYMMDD-HHMMSS-`.
-   - On same-second collisions, append a deterministic numeric suffix; never overwrite an existing archived
-     file.
-   - Log source path, destination path and any failure explicitly; archive evidence rather than silently
-     deleting on failure.
+2. **Context & Dependencies**
+* Estende il contratto di rotazione consolidato in T6.1 per includere tutti i residui di radice (`context-request-*`, `context-out-*`, `ToLlm_*` / `*-ToLlm.txt`) e le componenti temporanee in `.catsw-utility/temp/` (es. script `FromLlm-*.py` / `.ps1` orfani da sessioni fallite).
+* **Validazione Ciclo di Vita**: Poiché `move-to-history.py` viene invocato sempre **all'inizio** dei flussi (`startup-llm-session.py` e `process-from-llm.cmd`), gli unici file presenti durante l'esecuzione sono per definizione i residui del giro precedente e possono essere ruotati in sicurezza.
+* Il file `ToLlm` attivo e i file temporanei della sessione corrente generati dai flussi successivi sono preservati automaticamente dall'ordine di invocazione e dal blocco `finally` di `process-from-llm.py`.
 
-4. Acceptance Criteria
-   - Root candidates and stale temp residues are archived with the correct prefix.
-   - Same-second collisions produce distinct archived names, no overwrite.
-   - A failed rotation is logged, not silently swallowed.
 
-5. Delivery Artifacts
-   - Patch ZIP with the operational script under `.catsw-utility/temp/`.
+3. **Implementation Scope**
+* Scansionare non ricorsivamente la radice di `.catsw-utility/` e la directory `.catsw-utility/temp/`.
+* Archiviere i file candidati in `.catsw-utility/history/` applicando il prefisso timestamp `YYYYMMDD-HHMMSS-` al nome originale.
+* **Gestione Collisioni**: Se la combinazione `<TIMESTAMP>-<NOME_ORIGINALE>` esiste già in `history/`, appendere un suffisso numerico progressivo (`_1`, `_2`) prima dell'estensione. Mai sovrascrivere un file esistente.
+* **Resilienza**: Intercettare eventuali eccezioni di I/O (file bloccati, permessi) registrando l'errore a log senza interrompere l'archiviazione degli altri elementi.
 
-6. Extra Startup Files
-   - None beyond Target Paths.
+
+4. **Acceptance Criteria**
+* I file orfani in root e in `temp/` vengono archiviati in `history/` con il prefisso `YYYYMMDD-HHMMSS-`.
+* In caso di collisione nello stesso secondo, vengono generati nomi distinti senza sovrascritture.
+* Nessun file del giro corrente viene toccato dall'archiviazione.
+* Eventuali errori di spostamento vengono loggati e non ignorati silenziosamente.
+
+
+5. **Delivery Artifacts**
+* Script `move-to-history.py` (v1.2) e relative patch distribuite sotto `.catsw-utility/temp/`.
+
+
+6. **Extra Startup Files**
+* Nessuno oltre ai Target Paths.
 
 ---
 
@@ -541,6 +530,9 @@ carried over identically from the original plan.
 6. Extra Startup Files
    - None beyond Target Paths.
 
+- Allineamento: L'entry point ufficiale resta il wrapper move-to-history.cmd (che invoca lo script artifacts/move-to-history.py v1.1). I wrapper principali (aaa-startup-llm-session.cmd e process-from-llm.cmd) invocheranno direttamente questo .cmd.  
+- Allineamento: La scelta corretta è Warn-and-Continue. Se move-to-history.py riscontra un errore di I/O (es. file bloccato), restituisce exit code 1 e logga l'errore a schermo, ma i wrapper CMD catturano il codice, mostrano un avviso [WARNING] ed eseguono comunque lo step successivo senza interrompere la sessione dell'utente.
+
 ---
 
 #### T6.4 - Remove duplicate Python cleanup
@@ -573,6 +565,8 @@ carried over identically from the original plan.
 6. Extra Startup Files
    - None beyond Target Paths.
 
+- Allineamento: Perfettamente coerente. startup-llm-session.py non esegue più lo Step 1 interno, delegando l'operazione al relativo wrapper CMD aaa-startup-llm-session.cmd.
+
 ---
 
 #### T6.5 - Add rotation regression tests
@@ -604,8 +598,10 @@ carried over identically from the original plan.
 6. Extra Startup Files
    - None beyond Target Paths.
 
----
+- Allineamento: I test andranno collocati sotto la directory standard .catsw-utility/tests/.
 
+---
+<next_task>
 ### M7 - Cleanup and documentation
 
 #### T7.1 - Remove obsolete compatibility logic
@@ -643,7 +639,7 @@ carried over identically from the original plan.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
 #### T7.2 - Update utility documentation and examples

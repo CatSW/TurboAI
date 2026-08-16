@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.6
-# T5.2: TurboAiWorkingRoot ora scoperto dinamicamente (primo antenato di __file__ che contiene sia
-#       .catsw-utility che .ai-context), non piu' derivato da un offset relativo fisso
-#       (parent.parent). Elimina la stessa classe di rischio gia' vista nell'episodio 11-12/8
-#       (root del monorepo confusa con la root di un sotto-progetto).
-# v1.6: OverrideChangeLogPath non matcha piu' il testo di design nel task (placeholder <path>);
-#       DefaultChangeLogPath/Override accettano directory (con o senza trailing slash) e
-#       appendono il nome file standard Changelog.md / ChangeLog.md; messaggi di errore
-#       espliciti sul formato atteso invece di path fantasma o eccezioni non gestite.
-# lightweight start-session for new AI Context model
+# Version 1.7
+# T6.4: Rimosso lo Step 1 (invocazione interna di MoveToHistory.py), delegato
+#       interamente al wrapper CMD prima dell'avvio dello script.
 
 from __future__ import annotations
 
@@ -37,14 +30,6 @@ def utf8_child_env() -> dict[str, str]:
 
 
 def discover_working_root(start: Path) -> Path:
-    """
-    Risale da `start` (e dai suoi antenati) cercando la prima directory che
-    contiene sia una sottocartella `.catsw-utility` sia una `.ai-context`:
-    quella e' TurboAiWorkingRoot. Mai un offset relativo fisso, cosi' funziona
-    identicamente per l'istanza radice di TurboAI e per qualunque istanza di
-    sotto-soluzione annidata (es. Tools/ContextBundler) con la propria coppia
-    .catsw-utility/.ai-context.
-    """
     for candidate in (start, *start.parents):
         if (candidate / ".catsw-utility").is_dir() and (candidate / ".ai-context").is_dir():
             return candidate
@@ -55,7 +40,6 @@ def discover_working_root(start: Path) -> Path:
 
 
 def _parse_boolish(raw: str) -> bool | None:
-    """Return True/False for known values, None if invalid/empty."""
     if raw is None:
         return None
     val = raw.strip().lower()
@@ -69,11 +53,6 @@ def _parse_boolish(raw: str) -> bool | None:
 
 
 def _read_governance_key(solution_root: Path, key_name: str) -> str | None:
-    """
-    Parse a simple `key: value` / `key=value` line from .ai-context/SOLUTION_GOVERNANCE.md.
-    Returns the raw string value if found, None if missing/file absent.
-    Tolerant of markdown list markers, backticks, extra whitespace and case on the key name.
-    """
     gov_path = solution_root / ".ai-context" / "SOLUTION_GOVERNANCE.md"
     if not gov_path.is_file():
         return None
@@ -99,35 +78,22 @@ def _read_governance_base64(solution_root: Path) -> bool | None:
 
 
 def resolve_base64_mode(solution_root: Path | None = None) -> tuple[bool, str]:
-    """
-    Effective base64 mode for ContextBundler.
-    Precedence: env TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64
-                > Governance ContextBundler_output_base64
-                > default false.
-    Accepts true/false/1/0/yes/no (case-insensitive, surrounding whitespace).
-    Invalid values are ignored and fall through to the next level.
-    """
-    # 1. Environment variable (highest priority)
     env_val = os.environ.get("TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64")
     parsed = _parse_boolish(env_val) if env_val is not None else None
     if parsed is not None:
         return parsed, "env"
 
-    # 2. Governance file
     if solution_root is None:
         solution_root = discover_working_root(Path(__file__).resolve().parent)
     gov_val = _read_governance_base64(solution_root)
     if gov_val is not None:
         return gov_val, "governance"
 
-    # 3. Default
     return False, "default"
 
 
-# Nome file changelog standard (Keep a Changelog). Ordine di preferenza su FS case-sensitive.
 _CHANGELOG_FILENAMES = ("Changelog.md", "ChangeLog.md", "CHANGELOG.md")
 
-# Placeholder tipici del testo di design del piano — non sono path reali.
 _PLACEHOLDER_RE = re.compile(
     r"^(<[^>]*>|path|xxx|yyy|value|relpath|relative.?path)$",
     re.IGNORECASE,
@@ -135,10 +101,6 @@ _PLACEHOLDER_RE = re.compile(
 
 
 def _is_plausible_relpath(value: str) -> bool:
-    """
-    True se `value` sembra un path relativo reale, non un placeholder di documentazione.
-    Accetta file (.md) e directory (con/senza trailing slash, anche senza estensione).
-    """
     if not value or not value.strip():
         return False
     v = value.strip().strip("`'")
@@ -148,20 +110,14 @@ def _is_plausible_relpath(value: str) -> bool:
         return False
     if _PLACEHOLDER_RE.match(v.rstrip("/\\")):
         return False
-    # Deve assomigliare a un path: slash, o estensione file, o solo nome directory.
     if "/" in v or "\\" in v:
         return True
     if Path(v).suffix:
         return True
-    # Singolo segmento senza estensione: trattato come directory (es. "Documentation")
     return v.replace("_", "").replace("-", "").isalnum()
 
 
 def _extract_override_changelog_path(next_task_text: str) -> str | None:
-    """
-    Cerca 'OverrideChangeLogPath=<path>' (o ':') nel testo del task attivo.
-    Ignora match su testo di design (placeholder tipo <path>, path, ...).
-    """
     for m in re.finditer(
         r"OverrideChangeLogPath\s*[:=]\s*[`'\"]?([^\s`'\"]+)[`'\"]?",
         next_task_text,
@@ -174,18 +130,6 @@ def _extract_override_changelog_path(next_task_text: str) -> str | None:
 
 
 def _normalize_changelog_file(solution_root: Path, rel_value: str) -> Path:
-    """
-    Converte il valore di governance/override in un path file assoluto sotto solution_root.
-
-    Accetta:
-      - path file relativo:  Documentation/Changelog.md
-      - path directory:      Documentation/   oppure   Documentation
-        → appende il nome standard Changelog.md (con fallback ChangeLog.md / CHANGELOG.md
-          se il file preferito non esiste ma ne esiste uno degli altri).
-
-    Non solleva: se la directory non esiste o nessun file e' presente, restituisce comunque
-    il path convenzionale atteso cosi' il caller puo' emettere un messaggio chiaro.
-    """
     rel = rel_value.strip().strip("`'")
     rel_clean = rel.rstrip("/\\")
     base = solution_root / rel_clean
@@ -201,7 +145,6 @@ def _normalize_changelog_file(solution_root: Path, rel_value: str) -> Path:
             candidate = base / name
             if candidate.is_file():
                 return candidate
-        # Nessun file trovato: path convenzionale per il messaggio d'errore.
         return base / _CHANGELOG_FILENAMES[0]
 
     return base
@@ -210,16 +153,6 @@ def _normalize_changelog_file(solution_root: Path, rel_value: str) -> Path:
 def resolve_changelog_path(
     solution_root: Path, next_task_text: str
 ) -> tuple[Path | None, str, str | None]:
-    """
-    Effective changelog file path under solution_root.
-
-    Precedence: OverrideChangeLogPath (task attivo, path plausibile)
-                > DefaultChangeLogPath (governance)
-                > (None, "unset", None)
-
-    Ritorna (path|None, source, raw_value|None).
-    raw_value e' il valore grezzo letto, utile per messaggi d'errore.
-    """
     override = _extract_override_changelog_path(next_task_text)
     if override:
         return _normalize_changelog_file(solution_root, override), "task override", override
@@ -239,14 +172,12 @@ TO_LLM_PATH = Path.home() / "Downloads" / "ToLlm.txt"
 
 
 def log(msg: str) -> None:
-    """Print to console and append to Downloads/ToLlm.txt for TailWatcher."""
     print(msg)
     with TO_LLM_PATH.open("a", encoding="utf-8") as f:
         f.write(msg + "\n")
 
 
 def run(cmd: list[str], cwd: Path | None = None) -> str:
-    """Run a command and return stdout (raises on error)."""
     result = subprocess.run(
         cmd,
         cwd=cwd,
@@ -263,7 +194,6 @@ def run(cmd: list[str], cwd: Path | None = None) -> str:
 
 
 def find_script(script_name: str, artefacts_root: Path) -> Path | None:
-    """Cerca lo script nella cartella degli artifacts, nella CWD o accanto allo script di startup."""
     candidates = [
         artefacts_root / script_name,
         Path.cwd() / script_name,
@@ -279,7 +209,7 @@ def find_script(script_name: str, artefacts_root: Path) -> Path | None:
 def main() -> int:
     # Reset ToLlm.txt for this run
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("Executing startup-llm-session v1.6...")
+    log("Executing startup-llm-session v1.7...")
 
     # --- Path resolution ------------------------------------------------
     artefacts_root = Path(__file__).resolve().parent
@@ -290,16 +220,10 @@ def main() -> int:
     ai_context_dir = repo_root / ".ai-context"
     ai_context_dir.mkdir(exist_ok=True)
 
-    # --- 1. Move previous context* files to history ---------------------
-    sposta_script = find_script("MoveToHistory.py", artefacts_root)
-    if sposta_script and sposta_script.exists():
-        subprocess.run(
-            [sys.executable, str(sposta_script)],
-            check=False,
-            env=utf8_child_env(),
-        )
+    # NOTE (T6.4): L'archiviazione preventiva (Step 1) e' stata rimossa da qui
+    # ed e' delegata nativamente al wrapper CMD 'aaa-startup-llm-session.cmd'.
 
-    # --- 2. Git info → .ai-context/info_git.txt -------------------------
+    # --- 1. Git info → .ai-context/info_git.txt -------------------------
     try:
         git_log = run(["git", "log", "--oneline", "-5"], cwd=repo_root)
         git_status = run(["git", "status", "-sb"], cwd=repo_root)
@@ -317,9 +241,7 @@ def main() -> int:
 
     child_env = utf8_child_env()
 
-    # --- 3. Next task section → .ai-context/info_next_task.md -----------
-    # Spostato prima dello step changelog: la risoluzione del changelog path
-    # dipende da un eventuale OverrideChangeLogPath dichiarato nel task attivo.
+    # --- 2. Next task section → .ai-context/info_next_task.md -----------
     plan_src = ai_context_dir / "Piano-Multi-Task.md"
     extract_next_task_script = find_script("extract-next-task.py", artefacts_root)
     info_next_task_path = ai_context_dir / "info_next_task.md"
@@ -347,7 +269,7 @@ def main() -> int:
             header = f"# Next task – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
             info_next_task_path.write_text(header + next_task_text, encoding="utf-8")
 
-    # --- 4. Latest Changelog section → .ai-context/info_Changelog.md ----
+    # --- 3. Latest Changelog section → .ai-context/info_Changelog.md ----
     changelog_path, changelog_source, changelog_raw = resolve_changelog_path(
         repo_root, next_task_text
     )
@@ -411,7 +333,7 @@ def main() -> int:
             header = f"# Latest Changelog section – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
             info_changelog_path.write_text(header + result.stdout, encoding="utf-8")
 
-    # --- 5. Create lightweight manifest ---------------------------------
+    # --- 4. Create lightweight manifest ---------------------------------
     timestamp = datetime.now().strftime("%Y%m%d-%H%M")
     manifest_name = f"context-request-start-session-{timestamp}.md"
     manifest_path = utility_root / manifest_name
@@ -428,7 +350,7 @@ def main() -> int:
     manifest_content = "\n".join(manifest_lines) + "\n"
     manifest_path.write_text(manifest_content, encoding="utf-8", newline="\n")
 
-    # --- 6. Run ContextBundler -------------------------------------------
+    # --- 5. Run ContextBundler -------------------------------------------
     bundler = find_script("ContextBundler.exe", artefacts_root)
     if not bundler or not bundler.exists():
         log(f"ERRORE: ContextBundler.exe non trovato in {artefacts_root}")
