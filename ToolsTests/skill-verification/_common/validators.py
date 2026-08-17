@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.0
+# Version 1.1
 """
 Validatori condivisi per gli scenari di skill-verification.
 Ogni funzione ritorna (ok: bool, dettagli: list[str]). Sono controlli
@@ -102,16 +102,33 @@ def check_script_conventions(text: str) -> tuple[bool, list[str]]:
     return (len(issues) == 0), issues
 
 
-def write_report(report_path: Path, scenario: str, llm_name: str, ok: bool, issues: list[str], notes: str = "") -> None:
+def write_report(
+    report_path: Path,
+    scenario: str,
+    llm_name: str,
+    ok: bool,
+    issues: list[str],
+    notes: str = "",
+    scenario_version: str = "",
+    turbo_version: str = "",
+    skill_version: str = "",
+) -> None:
     lines = [
         f"# Report - {scenario}",
         f"- LLM: {llm_name}",
-        f"- Esito controlli automatici: {'PASS' if ok else 'FAIL'}",
-        "",
-        "## Dettagli",
     ]
+    if scenario_version:
+        lines.append(f"- Versione scenario di test: {scenario_version}")
+    if turbo_version:
+        lines.append(f"- Versione TurboAI: {turbo_version}")
+    if skill_version:
+        lines.append(f"- Versione skill Canale B: {skill_version}")
+    lines.append(f"- Esito controlli automatici: {'PASS' if ok else 'FAIL'}")
+    lines.append("")
+    lines.append("## Dettagli")
     lines += [f"- {i}" for i in issues] if issues else ["- Nessun problema rilevato dai controlli automatici."]
     if notes:
         lines += ["", "## Note", notes]
+    report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print(f"Report scritto: {report_path}")

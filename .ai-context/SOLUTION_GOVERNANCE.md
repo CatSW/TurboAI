@@ -31,3 +31,7 @@
   `<next_task>` and other plan edits: manual, or via a future dedicated
   script.
   
+  ## versione-turbo-ai: nel front-matter del file Readme.md in .ai-context (o .turbo-ai) bisogna allineare la versione quando si cambia nel Documentation/Changelog.md
+  
+  se si ha una Unreleased si prende la ultima veriosne, la si incrementa e si mette un alpha temporaneamente
+  

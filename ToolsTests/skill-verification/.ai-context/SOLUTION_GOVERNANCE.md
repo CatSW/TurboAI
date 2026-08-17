@@ -42,3 +42,15 @@ must be prefixed with `#` so it is treated as a comment.
 ## Authoritative references
 README.md and verifica-skill.cmd in this folder are authoritative on scenario
 execution mechanics — this file does not restate them.
+
+## Versionamento nei report
+
+- Versione dello scenario di test: costante `SCENARIO_VERSION` a inizio di ogni
+  `NN-scenario/run_test.py`, incrementata ad ogni modifica a scenario/golden.
+- Versione TurboAI: campo `versione-turbo-ai` nel front-matter di
+  `.catsw-utility/README.md`, letta da `_common/versioning.py:get_turbo_version()`.
+- Versione skill Canale B: campo `version` nel front-matter del file skill copiato
+  in `golden/` ad ogni `run_test.py setup` (sorgente:
+  `.catsw-utility/docs/skill-uso-tools.md`), letta da
+  `_common/versioning.py:get_skill_version()`.
+- Nessuna di queste tre va chiesta interattivamente: sono sempre derivate dai file.

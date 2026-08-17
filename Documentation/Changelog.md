@@ -6,18 +6,23 @@ type: changelog
 product: Turbo-AI Tools
 version: 1.0
 license: MIT
-updated: 2026-08-16
+updated: 2026-08-17
 ---
 # Changelog TurboAI
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased] - 2026-08-16
+## [Unreleased] - 2026-08-17
 
 - lavoro su piano - TurboAI utility toolchain v3.0 - FromLlm ZIP retention and temp execution - e altro aggiunto in corso d'opera
 
 ### Added
-
+- genera_zip.py v1.0
+- unbundler.py v1.0
+- genera-zip.cmd v1.0
+- unbundler.cmd v1.1
+- purga-output.cmd v1.1
+- Tools/JurassicPark/20260730_vecchio_prototipo_UnBundler_basato_su_BundleFormatVersion_1_0.7z
 - aggiunti ToolsTests/UnitTests
 - aggiunti ToolsTests/skill-verification
 - implementata - M6 - T6.5 - Add rotation regression tests - M6 chiusa
@@ -37,6 +42,9 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ### Changed
 
+- rinominato TickTack.cmd in tick-tack.cmd
+- process-from-llm.cmd v1.2
+- startup-llm-session.py v1.8 
 - process-from-llm.py v1.6
 - aaa-startup-llm-session.cmd v1.2
 - move-to-history.py v1.1 T6.1 + T6.2

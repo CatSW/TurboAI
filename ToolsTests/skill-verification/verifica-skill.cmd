@@ -1,8 +1,35 @@
 @echo off
+REM Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
+REM Licensed under the MIT License. See LICENSE file in the project root for full license information.
+REM Version 1.1
+
+REM Verifica e avvia from-llm-watcher se non è già in esecuzione
+powershell -NoProfile -Command "if (Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Where-Object {$_.CommandLine -like '*from-llm-watcher.py*'}) { exit 0 } else { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+    if exist "%~dp0.catsw-utility\from-llm-watcher.cmd" (
+       start "" /b cmd /c "%~dp0.catsw-utility\from-llm-watcher.cmd"
+    )
+)
+
+REM Verifica la presenza del file ToLlm.txt in Download
+if not exist "%USERPROFILE%\Downloads\ToLlm.txt" (
+	type null > "%USERPROFILE%\Downloads\ToLlm.txt"
+)
+
+REM Verifica e avvia tw se non è già in esecuzione
+powershell -NoProfile -Command "if (Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Where-Object {$_.CommandLine -like '*tw.py*'}) { exit 0 } else { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+    if exist "%~dp0.catsw-utility\tw.cmd" (
+        start "" /b cmd /c "%~dp0.catsw-utility\tw.cmd"
+    )
+)
+
+REM ---------------------------------------------------------------
 chcp 65001 >nul
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
 cls
+
 echo ===============================================
 echo   Skill Verification - TurboAI
 echo ===============================================
@@ -43,7 +70,8 @@ echo.
 pause
 
 set /p LLMNAME=Nome/versione LLM testato (es. grok, gpt5.6, claude-sonnet-5):
-set /p OUTFILE=Percorso del file salvato (output/zip/script):
+
+if not "%SCELTA%"=="1" set /p OUTFILE=Percorso del file salvato (output/zip/script):
 
 echo.
 echo --- Esecuzione verifica ---

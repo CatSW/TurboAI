@@ -64,8 +64,12 @@ The same frozen baseline will be executed with different models, channel modes a
 
 #### T1.1 - Create solution and projects
 - Create `TurboAI.Benchmark.slnx`.
-- Create `src/TurboAI.Benchmark.Console` targeting .NET 10.
-- Create `tests/TurboAI.Benchmark.Tests` targeting .NET 10 and xUnit V3.
+- Create `TurboAI.Benchmark` project folder
+- Create `TurboAI.Benchmark/Documentation` folder
+- Create `TurboAI.Benchmark.Tests` folder
+- Create Changelog.md file in the Documentation folder using the file in Documentation/Changelog.md in the root of the solution as a format exemple
+- Create in `TurboAI.Benchmark` a Console project targeting .NET 10.
+- Create in `TurboAI.Benchmark.Tests` a Test targeting targeting .NET 10 and xUnit V3.
 - Add project references and deterministic build settings.
 
 #### T1.2 - Configure application bootstrap and Serilog

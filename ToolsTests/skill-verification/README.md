@@ -23,7 +23,8 @@ scenari prima per portare l'LLM nelle condizioni giuste.
 ```
 skill-verification/
   _common/validators.py       controlli condivisi (formato context-request,
-                               contratto ZIP FromLlm, convenzioni script)
+                               contratto ZIP FromLlm, convenzioni script,
+                               scrittura report)
   01-start-session-acquisition/   comprensione del bundle di avvio sessione
   02-discovery-then-request/      task senza file dichiarati -> discovery poi context-request
   03-declared-files-request/      task con file gia' dichiarati -> context-request diretta
@@ -31,19 +32,25 @@ skill-verification/
   05-zip-delivery-sanity/         consegna ZIP FromLlm conforme al contratto
   06-single-script-delivery/      consegna di uno script standalone conforme alle convenzioni
   07-tolm-error-triage-patch/     diagnosi di un errore da ToLlm.txt + patch mirata
-  reports/                        report generati, un file per esecuzione
+  reports/                        una sottocartella per ogni esecuzione (vedi sotto)
 ```
 
 Ogni cartella scenario contiene:
 - `scenario.md` — obiettivo, materiale, procedura, criteri di successo
 - `golden/` — fixture minime da allegare alla chat LLM
-- `run_test.py` — `setup` (istruzioni) e `verify` (controllo automatico + report)
+- `testdir/` — quando lo scenario lo richiede, sorgente fittizio reale su cui
+  ContextBundler puo' operare (i path dichiarati nella fixture golden/ sono
+  narrativi per l'LLM sotto test; i path realmente risolti da ContextBundler
+  sono relativi alla vera TurboAiWorkingRoot e devono trovare qui il file)
+- `run_test.py` — `setup` (istruzioni) e `verify` (controllo automatico/guidato + report)
 
 ## Come usare (guidato)
 
 Esegui `verifica-skill.cmd` dalla cartella `skill-verification`: mostra
 un menu, ti guida passo passo su cosa allegare e cosa chiedere all'LLM,
-e lancia da solo la verifica quando gli dici che hai salvato la risposta.
+e lancia da solo la verifica quando gli dici che hai salvato la risposta
+(e, per lo scenario 01, i file context-request/context-out del giro reale
+con ContextBundler).
 
 ## Come usare (manuale)
 
@@ -53,9 +60,18 @@ Per ogni scenario:
    indicate, incolla il prompt suggerito.
 3. Salva l'output dell'LLM nella cartella dello scenario (nome libero,
    es. `output-grok.md`, oppure lo ZIP/script scaricato con il suo nome
-   originale).
-4. `python NN-scenario/run_test.py verify --llm <nome> --output|--zip|--script <path>`
-5. Il report finisce in `reports/report-<scenario>-<llm>-<data>.md`.
+   originale). Per lo scenario 01 non serve: `verify` trova da solo
+   l'ultima context-request-*.md/context-out-*.md in .catsw-utility.
+4. `python NN-scenario/run_test.py verify --llm <nome> ...` (argomenti
+   specifici per scenario: `--output`/`--zip`/`--script`; lo scenario 01
+   richiede solo `--llm`).
+5. Il report viene scritto in
+   `reports/<yyyymmdd-hhmm>_report-<scenario>-<llm>/`, con dentro:
+   - `<yyyymmdd-hhmm>-report-<scenario>-<llm>.md` (esito, versione dello
+     scenario, versione di TurboAI e della skill Canale B usata)
+   - copia dei file prodotti durante l'esecuzione (context-request/
+     context-out, oppure lo ZIP FromLlm copiato dalla history, o lo
+     script consegnato), per tracciabilita' e confronto storico
 
 ## Cosa verificano davvero questi test
 
@@ -69,5 +85,6 @@ buono?) — quella resta giudizio umano, guidato dai criteri in ogni
 ## Non-regressione
 
 Quando aggiorni una skill, riesegui gli scenari rilevanti sugli stessi
-LLM gia' testati prima e confronta i report: un esito che peggiora e'
+LLM gia' testati prima e confronta i report (comprese le versioni di
+TurboAI/skill/scenario registrate in ciascuno): un esito che peggiora e'
 un segnale di regressione introdotta dalla modifica alla skill.

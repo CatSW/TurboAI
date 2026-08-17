@@ -1,7 +1,7 @@
-# Next task – generated 2026-08-16T17:55:27
+# Next task – generated 2026-08-17T12:29:16
 
-## T1 - Re-verify 01-start-session-acquisition
-- Rerun the scenario with the corrected TurboAiWorkingRoot.
-- Confirm context-out includes the requested file(s) with real content.
-- Confirm context-request-*.md has no unmarked free-text line (comment with `#` if needed).
-- Update the report in reports/ per the naming convention in SOLUTION_GOVERNANCE.md.
+## T1.1 - Riverifica 01-start-session-acquisition
+
+- ricevi 20260817_LavorazioneBuildSkillVerification.md ed analizzalo
+- dopo le modifiche conseguenti andrà riprovato lo scenario 01-start-session-acquisition e fatte nuove iterazioni su T1.1 fino a quando IK0VCK lo ritiene soddisfacente
+- aggiornare Documentation/Changelog.md e versione dello scenario di test nel file 01-start-session-acquisition/run_test.py (SCENARIO_VERSION)

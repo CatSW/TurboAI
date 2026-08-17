@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.7
+# Version 1.8
 # T6.4: Rimosso lo Step 1 (invocazione interna di MoveToHistory.py), delegato
 #       interamente al wrapper CMD prima dell'avvio dello script.
 
@@ -226,11 +226,14 @@ def main() -> int:
     # --- 1. Git info → .ai-context/info_git.txt -------------------------
     try:
         git_log = run(["git", "log", "--oneline", "-5"], cwd=repo_root)
+    except RuntimeError as exc:
+        git_log = f"{exc}"
+    
+    try:    
         git_status = run(["git", "status", "-sb"], cwd=repo_root)
     except RuntimeError as exc:
-        log(f"ERRORE git: {exc}")
-        return 1
-
+        git_status = f"{exc}"
+        
     info_git = (
         f"# Git status – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
         f"## git log --oneline -5\n{git_log.strip()}\n\n"
@@ -289,49 +292,48 @@ def main() -> int:
         log(
             "ERRORE: nessun changelog configurato.\n" + _CHANGELOG_FORMAT_HINT
         )
-        return 1
+    else:        
+        if changelog_source == "invalid-governance":
+            log(
+                f"ERRORE: DefaultChangeLogPath ha un valore non valido: {changelog_raw!r}\n"
+                + _CHANGELOG_FORMAT_HINT
+            )
+            return 1
 
-    if changelog_source == "invalid-governance":
         log(
-            f"ERRORE: DefaultChangeLogPath ha un valore non valido: {changelog_raw!r}\n"
-            + _CHANGELOG_FORMAT_HINT
+            f"Changelog path: {changelog_path} "
+            f"(source={changelog_source}, raw={changelog_raw!r})"
         )
-        return 1
 
-    log(
-        f"Changelog path: {changelog_path} "
-        f"(source={changelog_source}, raw={changelog_raw!r})"
-    )
+        extract_changelog_script = find_script("extract-latest-changelog.py", artefacts_root)
 
-    extract_changelog_script = find_script("extract-latest-changelog.py", artefacts_root)
-
-    if not changelog_path.is_file():
-        parent = changelog_path.parent
-        hint = ""
-        if parent.is_dir():
-            present = [p.name for p in parent.iterdir() if p.is_file()]
-            hint = f" (directory presente; file trovati: {present or 'nessuno'})"
-        elif not parent.exists():
-            hint = f" (anche la directory padre non esiste: {parent})"
-        log(f"ATTENZIONE: Changelog non trovato: {changelog_path}{hint}")
-        info_changelog_path.write_text("# Changelog not found\n", encoding="utf-8")
-    elif not extract_changelog_script or not extract_changelog_script.exists():
-        log("ATTENZIONE: extract-latest-changelog.py non trovato")
-        info_changelog_path.write_text("# extract tool missing\n", encoding="utf-8")
-    else:
-        result = subprocess.run(
-            [sys.executable, str(extract_changelog_script), str(changelog_path)],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            env=child_env,
-        )
-        if result.returncode != 0:
-            log(f"Errore extract-latest-changelog: {result.stderr}")
-            info_changelog_path.write_text("# Extraction failed\n", encoding="utf-8")
+        if not changelog_path.is_file():
+            parent = changelog_path.parent
+            hint = ""
+            if parent.is_dir():
+                present = [p.name for p in parent.iterdir() if p.is_file()]
+                hint = f" (directory presente; file trovati: {present or 'nessuno'})"
+            elif not parent.exists():
+                hint = f" (anche la directory padre non esiste: {parent})"
+            log(f"ATTENZIONE: Changelog non trovato: {changelog_path}{hint}")
+            info_changelog_path.write_text("# Changelog not found\n", encoding="utf-8")
+        elif not extract_changelog_script or not extract_changelog_script.exists():
+            log("ATTENZIONE: extract-latest-changelog.py non trovato")
+            info_changelog_path.write_text("# extract tool missing\n", encoding="utf-8")
         else:
-            header = f"# Latest Changelog section – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
-            info_changelog_path.write_text(header + result.stdout, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(extract_changelog_script), str(changelog_path)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                env=child_env,
+            )
+            if result.returncode != 0:
+                log(f"Errore extract-latest-changelog: {result.stderr}")
+                info_changelog_path.write_text("# Extraction failed\n", encoding="utf-8")
+            else:
+                header = f"# Latest Changelog section – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
+                info_changelog_path.write_text(header + result.stdout, encoding="utf-8")
 
     # --- 4. Create lightweight manifest ---------------------------------
     timestamp = datetime.now().strftime("%Y%m%d-%H%M")

@@ -366,3 +366,10 @@ history/
 ToolsTests/skill-verification/.catsw-utility/
 ToolsTests/skill-verification/reports/**
 !ToolsTests/skill-verification/reports/.gitkeep
+.catsw-utility/output/
+ToolsTests/skill-verification/.ai-context/info_Changelog.md
+ToolsTests/skill-verification/.ai-context/info_git.txt
+ToolsTests/skill-verification/.ai-context/info_next_task.md
+ToolsTests/skill-verification/.catsw-utility/output/
+ToolsTests/skill-verification/01-start-session-acquisition/golden/skill-uso-tools.md
+.catsw-utility/*-ToLlm.txt

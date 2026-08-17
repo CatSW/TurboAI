@@ -1,6 +1,16 @@
 # TurboAI Benchmark - Solution Governance
 
 ## Identity
+> nota da **CANCELLARE** dopo aver aggiornato il file SOLUTION_GOVERNANCE.md
+> TurboAiWorkingRoot deve essere valorizzata con la root della solution, esempio `C:/Repo/CatSW/TurboAI-Benchmark-Gemini/`
+> DefaultChangeLogPath deve essere aggiornata in seguito perchè la solution in fase iniziale non ha ancora creato i folder dove sarà inserita!
+> quindi alla partenza nel file context-out è giusto che il contenuto di Changelog.md sia riportato come "# Changelog not found"
+> e che aaa-startup-llm-session.cmd segnali "ATTENZIONE: Changelog non trovato"
+> fino a quando non si valorizzerà qui sotto DefaultChangeLogPath
+- TurboAiWorkingRoot: ``
+- DefaultChangeLogPath: ``
+
+## Identity
 - Root: `<repository-root>`
 - Solution: `TurboAI.Benchmark`
 - Solution type: reusable TurboAI reference workload and regression benchmark

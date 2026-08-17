@@ -1,9 +1,10 @@
 ---
-title: Readme - Manuale Utente & Architettura TurboAI 1.0
+title: Readme - Manuale Utente & Architettura TurboAI
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 version: 1.0
-updated: 2026-08-09
+versione-turbo-ai: 1.0.5 alpha++
+updated: 2026-08-17
 license: MIT
 ---
 # Turbo-AI tools by IK0VCK @ CatSW
@@ -95,3 +96,39 @@ Questo progetto è distribuito sotto **Licenza MIT**. Per il testo completo, con
 
 - **Copyright:** © 2026 Stefano Vesco (IK0VCK) - CatSW.
 - **Uso Commerciale e Privato:** Gratuito e consentito senza restrizioni.
+
+## 8. unbundler + genera-zip – purga-output
+
+### Layout
+
+```
+.catsw-utility/
+  unbundler.cmd
+  genera-zip.cmd
+  purga-output.cmd
+  artifacts/
+    unbundler.py
+    genera_zip.py
+  output/                  ← FromLlm-*.zip finiscono qui
+  docs/tool-skillsets/
+    skill-tools-use-channels-c_en.md
+  context-out-<desc>.md    ← metti qui il file da processare
+```
+
+### Uso rapido
+
+1. Copia un `context-out-<descrizione>.md` (in chiaro "BundleFormatVersion 3" **oppure** intero file base64) dentro `.catsw-utility/`.
+2. Doppio-click su `genera-zip.cmd`.
+3. Trovi `output/FromLlm-<descrizione>.zip`.
+4. Per svuotare `output/` → `purga-output.cmd`.
+
+`unbundler.cmd` da solo estrae in `output/_extracted/` (utile per debug anche dei file generati da ContextBundler.exe).
+
+### Note
+
+- Fail-fast, messaggi chiari.
+- sha256/bytes: solo warning.
+- Supporta formato v3 (`<<<FILE ...>>>`) e legacy (`## File:`).
+- Rilevamento base64: solo se l’intero contenuto del file è una stringa base64 valida.
+- I `.cmd` sono wrapper Windows; gli script sono Python 3 pure (pronti per futuri `.sh`).
+
