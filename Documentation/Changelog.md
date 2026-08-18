@@ -6,17 +6,21 @@ type: changelog
 product: Turbo-AI Tools
 version: 1.0
 license: MIT
-updated: 2026-08-17
+updated: 2026-08-18
 ---
 # Changelog TurboAI
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased] - 2026-08-17
+## [Unreleased] - 2026-08-18
 
 - lavoro su piano - TurboAI utility toolchain v3.0 - FromLlm ZIP retention and temp execution - e altro aggiunto in corso d'opera
+- modifiche distribuite su più giorni con file che hanno subito cambi versione multipli
 
 ### Added
+
+- skill-tools-use-channels-c_en.md v0.3.0
+- process-c-channel.cmd v1.0
 - genera_zip.py v1.0
 - unbundler.py v1.0
 - genera-zip.cmd v1.0
@@ -46,7 +50,7 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 - process-from-llm.cmd v1.2
 - startup-llm-session.py v1.8 
 - process-from-llm.py v1.6
-- aaa-startup-llm-session.cmd v1.2
+- aaa-startup-llm-session.cmd v1.3
 - move-to-history.py v1.1 T6.1 + T6.2
 - TickTack.cmd v1.2
 - list-files.py v1.3

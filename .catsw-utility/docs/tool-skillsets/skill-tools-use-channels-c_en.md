@@ -2,8 +2,8 @@
 title: skill-tools-use-channels-c
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 0.1.0-prototype
-updated: 2026-08-17
+version: 0.3.0
+updated: 2026-08-18
 audience: LLM
 mode: Channel C
 ---
@@ -11,10 +11,14 @@ mode: Channel C
 # TurboAI Tools: Channel C
 
 Channel C is for LLM web UIs that **cannot** produce downloadable files or ZIP links
-(Gemini free tier, and similar).  
-The LLM emits a complete ContextBundler-compatible context-out payload **as pure base64**.
-The user saves it as a file and runs the local GeneraZip tool, which produces a normal
-`FromLlm-<description>.zip` that is then processed exactly like a Channel B artifact.
+(Gemini free tier and similar).  
+The LLM emits a **Python generator script**.  
+The user saves it as `FromLlm-<description>.py` (usually in Downloads).  
+When the script runs, it **must** write the file  
+`context-out-<description>.md` **inside the folder `.catsw-utility`**.  
+The user then runs `genera-zip.cmd` from `.catsw-utility`; the tool produces  
+`FromLlm-<description>.zip` in `.catsw-utility/output`.  
+That ZIP is processed exactly like a normal Channel B artifact.
 
 ## 1. Role and authority
 
@@ -48,8 +52,8 @@ material ambiguity, unsafe action or missing non-recoverable context.
 
 ## 3. Session and context
 
-TurboAiWorkingRoot is the path one level up of .catsw-utility, the folder where the user
-operates. All relative paths, in .ai-context files and in bundle output, are relative to it.
+TurboAiWorkingRoot is the path one level up of `.catsw-utility`, the folder where the user
+operates. All relative paths, in `.ai-context` files and in bundle output, are relative to it.
 
 The user can use a PowerShell (or later shell) session in `<TurboAiWorkingRoot>\.catsw-utility`
 to execute needed commands.
@@ -67,7 +71,7 @@ When the task requires source that is not already present in the startup bundle 
 exact paths are not known:
 
 1. Do **not** invent paths or request speculative files.
-2. Instruct the user to run `.catsw-utility\list-files.cmd` from .catsw-utility and attach
+2. Instruct the user to run `.catsw-utility\list-files.cmd` from `.catsw-utility` and attach
    the resulting `ls.txt`.
 3. Only after receiving the inventory, produce a precise `context-request-*.md` containing
    the exact relative paths needed for the current task (max 3 same-level batches when practical).
@@ -109,68 +113,117 @@ All generated scripts must:
 - use standard-library dependencies unless the project already provides more;
 - avoid destructive Git, push, history rewrite and automatic deployment.
 
-## 6. Delivery contract for Channel C (replaces the FromLlm ZIP download)
+## 6. Delivery contract for Channel C (Python generator)
 
 **You cannot produce downloadable files or ZIP links.**  
-Instead you emit a complete ContextBundler context-out payload encoded as **pure base64**.
+Instead you emit a complete, self-contained **Python generator script**.
 
-### Exact emission rules
+### 6.1 Mandatory description parameter
 
-1. Build the logical content exactly as a normal context-out BundleFormatVersion 3 would:
-   - Header lines starting with `# CONTEXT BUNDLE`, `# BundleFormatVersion: 3`, etc.
-   - One or more blocks:
-     ```
-     <<<FILE path="relative/path" bytes="N" sha256="hex">>>
-     ...file content...
-     <<<END FILE>>>
-     ```
-   - Paths are relative to TurboAiWorkingRoot / solution root.
-   - At most one operational script, placed at
-     `.catsw-utility/temp/FromLlm-<description>.py` (preferred) or `.ps1`.
-   - No container directory, no absolute paths, no path traversal.
+- Choose a short, filesystem-safe `<description>` (examples: `T4.2-ricerca-domanda-definitiva`, `m7-t7.1-cleanup`, `test-canale-c`).
+- The **same exact string** must appear in three places:
+  1. Filename the user saves: `FromLlm-<description>.py`
+  2. Context-out file the script writes: `context-out-<description>.md`
+  3. Final ZIP produced by `genera-zip.cmd`: `FromLlm-<description>.zip`
+- Never invent a different description inside the script.
 
-2. Encode the **entire** context-out text (UTF-8) as a single base64 string
-   (standard alphabet, no line wrapping required, padding `=` allowed).
+### 6.2 Where the context-out file MUST be written (critical)
 
-3. Emit **only** that base64 string in the final delivery message.
-   - Preferred: a single fenced block marked `base64`:
-     ````
-     ```base64
-     <the-base64-string>
-     ```
-     ````
-   - Acceptable alternative: the raw base64 string alone, with a one-line label before it
-     such as `BASE64 context-out follows:`.
+The generator script **must** create the markdown file **inside the folder `.catsw-utility`**.
 
-4. Do **not** emit the plain markdown context-out. Encoding problems in web UIs make
-   pure base64 the only reliable channel.
+**Primary rule (use this):**
 
-5. Choose a sensible short `<description>` (e.g. `m7-t7.1-cleanup`, `fix-unbundler`).
-   Tell the user the exact filename they must use:
-   `context-out-<description>.md`
+```python
+output_path = Path.cwd() / ".catsw-utility" / "context-out-<description>.md"
+output_path.parent.mkdir(parents=True, exist_ok=True)
+```
 
-### User-side procedure (tell the user clearly)
+- If the current working directory is already `.catsw-utility`, writing  
+  `Path.cwd() / "context-out-<description>.md"` is also acceptable.
+- **Never** write the file into the solution root, into Downloads, or into `temp/`.
 
-After you emit the base64 block, instruct the user with these steps:
+After the file exists in `.catsw-utility`, the user runs `genera-zip.cmd` from that folder;  
+the tool produces the ZIP in `.catsw-utility/output`.
 
-1. Copy the entire base64 string (or the content of the `base64` fence).
-2. Create a new text file named exactly `context-out-<description>.md`
-   inside the folder `.catsw-utility/`.
-3. Paste the base64 into that file and save (UTF-8).
-4. Double-click (or run) `GeneraZip.cmd` from `.catsw-utility/`.
+### 6.3 Payload rules (BundleFormatVersion 3)
+
+Build the logical content exactly as a normal context-out:
+
+- Header lines: `# CONTEXT BUNDLE`, `# BundleFormatVersion: 3`, etc.
+- One or more blocks:
+
+```
+<<<FILE path="relative/path" bytes="N" sha256="hex">>>
+...exact file content...
+<<<END FILE>>>
+```
+
+- Paths are relative to TurboAiWorkingRoot / solution root.
+- At most one operational script, placed at  
+  `.catsw-utility/temp/FromLlm-<description>.py` (preferred) or `.ps1`.
+- No container directory, no absolute paths, no path traversal (`..`).
+- `bytes=` = exact UTF-8 byte length of the file content.
+- `sha256=` = SHA-256 of the exact UTF-8 bytes of the file content.
+- File content must be complete (no truncation).
+
+### 6.4 Exact emission format
+
+Emit the **entire** Python source in a single fenced code block:
+
+````
+```python
+<the-complete-generator-script>
+```
+````
+
+Template the script must follow:
+
+```python
+from pathlib import Path
+# Generated by Channel C – description: <description>
+
+CONTEXT_OUT_CONTENT = r"""# CONTEXT BUNDLE
+# BundleFormatVersion: 3
+# ContextBundler V1.3.0.0
+# Generated: YYYY-MM-DD HH:MM:SS
+<<<FILE path="..." bytes="..." sha256="...">>>
+...
+<<<END FILE>>>
+"""
+
+def main():
+    # CRITICAL: the context-out file MUST be written inside .catsw-utility
+    output_path = Path.cwd() / ".catsw-utility" / "context-out-<description>.md"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(CONTEXT_OUT_CONTENT.strip() + "\n")
+    print(f"File '{output_path}' generato con successo in formato UTF-8 (LF)!")
+
+if __name__ == "__main__":
+    main()
+```
+
+### 6.5 User-side procedure (tell the user clearly after the code block)
+
+1. Copy the entire content of the `python` fence.
+2. Save it as `FromLlm-<description>.py` (usually in Downloads).
+3. Let the watcher execute it (or run it manually).  
+   It **must** create `.catsw-utility/context-out-<description>.md`.
+4. From the folder `.catsw-utility` run `genera-zip.cmd`.
 5. The tool produces `.catsw-utility/output/FromLlm-<description>.zip`.
-6. Move that ZIP to Downloads (or let a future watcher do it) and process it with the
-   normal `process-from-llm` pipeline exactly as a Channel B artifact.
+6. Move that ZIP to Downloads; the normal process-from-llm / unbundler pipeline will handle it.
 
-### Self-check before emission (mandatory)
+### 6.6 Self-check before emission (mandatory)
 
-Before emitting the base64, verify:
+Before emitting the Python script verify:
 
-- All paths are relative and safe (no `..`, no absolute).
+- The string `<description>` is identical in the three places listed in 6.1.
+- `output_path` points **inside `.catsw-utility`** (never solution root, never temp, never Downloads).
+- All paths inside the payload are relative and safe (no `..`, no absolute).
 - At most one operational script under `.catsw-utility/temp/`.
+- `bytes=` and `sha256=` are correct for the exact UTF-8 content.
 - File contents are complete (no truncation).
-- The resulting context-out, once decoded, is valid BundleFormatVersion 3.
-- The description is short, filesystem-safe and meaningful.
+- The resulting context-out is valid BundleFormatVersion 3.
 
 If any check fails, fix it before emitting.
 
@@ -181,8 +234,8 @@ When you need the user to run discovery commands, prefer the same patterns as Ch
 
 ## 8. Artifacts and attachments
 
-Because this channel cannot attach binary files, the only delivery vehicle is the base64
-context-out described in §6. Never leave the user with only a plain filename or a
+Because this channel cannot attach binary files, the only delivery vehicle is the Python
+generator script described in §6. Never leave the user with only a plain filename or a
 non-copyable block.
 
 ## 9. Verification and Git
@@ -221,6 +274,8 @@ Keep a Changelog delta.
 
 ## 12. Mandatory secondary check
 
-Before emitting the base64 payload, perform a second consistency check of names, paths,
-scope, syntax, encoding and the Channel C delivery rules. If the fix is deterministic,
-repair and deliver immediately; ask the user only when a decision is genuinely required.
+Before emitting the Python generator, perform a second consistency check of names, paths,
+scope, syntax, encoding, bytes/sha256 values, the description string and the Channel C
+delivery rules (especially the output location inside `.catsw-utility`).  
+If the fix is deterministic, repair and deliver immediately; ask the user only when a
+decision is genuinely required.

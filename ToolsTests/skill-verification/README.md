@@ -1,3 +1,12 @@
+---
+title: Readme - Skill Verification (Test Harness TurboAI)
+copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
+author: IK0VCK
+version: 1.1
+versione-skill-verification: 0.3.0
+updated: 2026-08-18
+license: MIT
+---
 # Skill Verification — test formali di interpretazione skill
 
 Verifica se un LLM, a parita' di skill fornita, interpreta e applica
@@ -88,3 +97,7 @@ Quando aggiorni una skill, riesegui gli scenari rilevanti sugli stessi
 LLM gia' testati prima e confronta i report (comprese le versioni di
 TurboAI/skill/scenario registrate in ciascuno): un esito che peggiora e'
 un segnale di regressione introdotta dalla modifica alla skill.
+
+## .catsw-utility a livello di root skill-verification
+
+Serve per sviluppare evolvere e mantenere la solution skill-verification in dogfooding usando gli strumenti di turbo-ai
