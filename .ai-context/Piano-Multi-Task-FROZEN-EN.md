@@ -601,29 +601,41 @@ move-to-history.py:
 - Allineamento: I test andranno collocati sotto la directory standard .catsw-utility/tests/.
 
 ---
+<next_task>
+### NewM7 - completare supporto canale C e rework del piano
 
-### ME6 Estemporanea Su Chat - completare supporto canale C 
+<inchiostro_simpatico>
+Intervallo, fatti un riposino sullo svolgimento del piano andando a inserirci una nuova Milestone prima di riprendere!
+nuova "NewM7 - completare supporto canale C e rework del piano" in  NewT7.1 è spiegato come procedere.
+</inchiostro_simpatico>
 
-#### ME6.1 completare integrazione in turbo-ai
+#### NewT7.1 rinominare tutte le milestone e relativi task da M7 in poi per far posto a NewM7
 
+1. Target Paths
+ - `.ai-context/Piano-Multi-Task.md`
+ 
+- [x] Ho Già fatto una copia di backup di questo file, per storico, con nome Piano-Multi-Task-FROZEN-EN.md
+- Rinumerare tutte le Milestone da M7 in poi, esempio M7 diventerà M8 etcetera (e realtivi task di conseguenza)
+- tradurre tutto il nuovo piano in italiano senza modificarne la semantica
+- a questo punto quindi NewM7 viene rinominato in M7 (e relativi task di conseguenza) per completare l'operazione di inserimento.
+- rimuove il testo incluso nelle tag inchiostro_simpatico dal piano
+</next_task>
+
+#### NewT7.2 acquisire skill per canale C e completare integrazione in turbo-ai
+
+1. Target Paths
+  - `.catsw-utility/from-llm-watcher.cmd`
+  - `.catsw-utility/artifacts/from-llm-watcher.py`
+
+5. Delivery Artifacts 
   - Bisogna estendere il comportamento di from-llm-watcher per gestire i file che arrivano in Download con nome del tipo FromC-descrizione.py
     - from-llm-watcher sposta tale script da Download in `.catsw-utility/temp`  e lo esegue (questo già lo fa per gli script con nome FromLlm-descrizione.py) ma dopo l'esecuzione, che avrà come conseguenza la generazione in .catsw-utility di un file context-out-descrizione.md, dovrà: 
     - chiamare process-c-channel.cmd (questo prende il file context-out-descrizione.md genrato prima e ne ricava un file FromLlm-descrizione-zip che verrà in seguito processato, come da prassi, da from-llm-watcher)
     - chiamare move-to-history (che deve essere aggiornato per spostare anche i file FromC-*.py da `.catsw-utility/temp` in `.catsw-utility/history`)
   - far testare all'utente, su chat Gemini con watcher modificato se tutto funziona, e farsi dare feedback, eventualmente correggere problemi
+- - `PROPAGATE TO NewT7.3: descrizione_operativita_canale_c = <value>`
 
-#### ME6.2 aggiorna skill canale c 
-
-1. Target Paths
-  - `.catsw-utility/docs/tool-skillsets/skill-tools-use-channels-c_en.md`
-
-2. Context & Dependencies
- - `[FROM ME6.1 descrizione_operativita_canale_c = <value>]=`
- 
-5. Delivery Artifacts 
-  - aggiornare le skill canele c (`.catsw-utility/docs/tool-skillsets/skill-tools-use-channels-c_en.md`) per far dire nella chat dal llm che l'utente deve 
-
-#### ME6.3 aggiorna skill canale c e documentazione turbo-ai relativa
+#### NewT7.3 aggiorna skill canale c e documentazione turbo-ai relativa
 
 1. Target Paths
   - `.catsw-utility/docs/tool-skillsets/skill-tools-use-channels-c_en.md`
@@ -634,10 +646,11 @@ move-to-history.py:
  - `[FROM NewT7.2 descrizione_operativita_canale_c = <value>]=`
  
 5. Delivery Artifacts 
+  - aggiornare le skill canele c (`.catsw-utility/docs/tool-skillsets/skill-tools-use-channels-c_en.md`) per far dire nella chat dal llm che l'utente deve creare lo script python di cui fornisce il testo, in Download con nome FromC-descrizione-appropriata.py
   - aggiornare la documentazione di turbo-ai per descrivere la nuova modalità di lavoro con il canale C (documenti `.catsw-utility/Readme.md` e `.catsw-utility/docs/TurboAI.md`)
-  
+
 ---
-<next_task>
+
 ### M7 - Cleanup and documentation
 
 #### T7.1 - Remove obsolete compatibility logic

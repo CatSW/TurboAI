@@ -16,8 +16,10 @@
 *.props text eol=crlf
 *.targets text eol=crlf
 *.xml text eol=crlf
-*.yml text eol=lf
-*.yaml text eol=lf
 *.txt text eol=crlf
 *.sln text eol=crlf
 *.slnx text eol=crlf
+*.cmd text eol=crlf
+
+*.yml text eol=lf
+*.yaml text eol=lf

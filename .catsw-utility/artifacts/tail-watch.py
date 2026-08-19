@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.1
+# Version 1.2
 
 import os
 import sys
@@ -110,7 +110,7 @@ def show_last_lines(file_path: Path, n: int = 50) -> tuple[int, bytes]:
 
 def main():
     if len(sys.argv) < 2:
-        print("Uso: tw <file_path> [secondi_inattivita]")
+        print("Uso: tail-watch <file_path> [secondi_inattivita]")
         sys.exit(1)
 
     file_path = Path(sys.argv[1]).resolve()

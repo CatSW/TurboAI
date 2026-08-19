@@ -11,7 +11,7 @@ internal static class SmartAssFileResolver
     /// scritto tramite logError).</summary>
     public static string[]? TryResolve(Action<string> logError)
     {
-        logError("smart-ass mode");
+        //logError("smart-ass mode");
         var cwd = Directory.GetCurrentDirectory();
         var candidate = Directory.GetFiles(cwd, "context-request*.md")
             .OrderByDescending(File.GetLastWriteTimeUtc)

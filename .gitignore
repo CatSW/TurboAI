@@ -376,3 +376,5 @@ ToolsTests/skill-verification/01-start-session-acquisition/golden/skill-uso-tool
 ToolsTests/skill-verification/01-start-session-acquisition/testdir/.catsw-utility/
 ToolsTests/skill-verification/.ai-context/info_next_task.md
 .catsw-utility/docs/skill-uso-tools.md
+.catsw-utility/tail-watch.json
+.catsw-utility/from-llm-watcher.json

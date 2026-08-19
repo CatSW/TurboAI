@@ -2,8 +2,8 @@
 title: skill-tools-use-channels-c
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 0.3.0
-updated: 2026-08-18
+version: 0.3.3
+updated: 2026-08-19
 audience: LLM
 mode: Channel C
 ---
@@ -13,7 +13,8 @@ mode: Channel C
 Channel C is for LLM web UIs that **cannot** produce downloadable files or ZIP links
 (Gemini free tier and similar).  
 The LLM emits a **Python generator script**.  
-The user saves it as `FromLlm-<description>.py` (usually in Downloads).  
+The user saves it as `FromC-<description>.py` in the Downloads folder.  
+The prefix `FromC-` is mandatory because it automatically triggers the automated processing chain.  
 When the script runs, it **must** write the file  
 `context-out-<description>.md` **inside the folder `.catsw-utility`**.  
 The user then runs `genera-zip.cmd` from `.catsw-utility`; the tool produces  
@@ -121,8 +122,8 @@ Instead you emit a complete, self-contained **Python generator script**.
 ### 6.1 Mandatory description parameter
 
 - Choose a short, filesystem-safe `<description>` (examples: `T4.2-ricerca-domanda-definitiva`, `m7-t7.1-cleanup`, `test-canale-c`).
-- The **same exact string** must appear in three places:
-  1. Filename the user saves: `FromLlm-<description>.py`
+- The **same exact string** must appear in three places, respecting the exact naming conventions below:
+  1. Filename the user saves: `FromC-<description>.py` (The prefix `FromC-` is mandatory to trigger the automated chain).
   2. Context-out file the script writes: `context-out-<description>.md`
   3. Final ZIP produced by `genera-zip.cmd`: `FromLlm-<description>.zip`
 - Never invent a different description inside the script.
@@ -142,8 +143,8 @@ output_path.parent.mkdir(parents=True, exist_ok=True)
   `Path.cwd() / "context-out-<description>.md"` is also acceptable.
 - **Never** write the file into the solution root, into Downloads, or into `temp/`.
 
-After the file exists in `.catsw-utility`, the user runs `genera-zip.cmd` from that folder;  
-the tool produces the ZIP in `.catsw-utility/output`.
+After the file exists in `.catsw-utility`, the automated chain is triggered or the user runs `genera-zip.cmd` from that folder;  
+the tool produces the ZIP `FromLlm-<description>.zip` in `.catsw-utility/output`.
 
 ### 6.3 Payload rules (BundleFormatVersion 3)
 
@@ -153,7 +154,7 @@ Build the logical content exactly as a normal context-out:
 - One or more blocks:
 
 ```
-<<<FILE path="relative/path" bytes="N" sha256="hex">>>
+<<<FILE bytes="N" path="relative/path" sha256="hex">>>
 ...exact file content...
 <<<END FILE>>>
 ```
@@ -206,7 +207,7 @@ if __name__ == "__main__":
 ### 6.5 User-side procedure (tell the user clearly after the code block)
 
 1. Copy the entire content of the `python` fence.
-2. Save it as `FromLlm-<description>.py` (usually in Downloads).
+2. Save it strictly as `FromC-<description>.py` in the Downloads folder. The prefix `FromC-` is mandatory because it triggers the automated processing chain.
 3. Let the watcher execute it (or run it manually).  
    It **must** create `.catsw-utility/context-out-<description>.md`.
 4. From the folder `.catsw-utility` run `genera-zip.cmd`.
@@ -217,7 +218,8 @@ if __name__ == "__main__":
 
 Before emitting the Python script verify:
 
-- The string `<description>` is identical in the three places listed in 6.1.
+- The suggested filename to save is strictly `FromC-<description>.py`.
+- The string `<description>` is identical in the three places listed in 6.1 (while the ZIP internal reference remains `FromLlm-`).
 - `output_path` points **inside `.catsw-utility`** (never solution root, never temp, never Downloads).
 - All paths inside the payload are relative and safe (no `..`, no absolute).
 - At most one operational script under `.catsw-utility/temp/`.
@@ -279,3 +281,11 @@ scope, syntax, encoding, bytes/sha256 values, the description string and the Cha
 delivery rules (especially the output location inside `.catsw-utility`).  
 If the fix is deterministic, repair and deliver immediately; ask the user only when a
 decision is genuinely required.
+
+## 13. Skill and Markdown Maintenance
+
+When requested to update or emit any Markdown file containing internal code blocks, data structures, or diagrams (such as JSON, XML, YAML, or Mermaid), you must prevent UI parser truncation:
+
+Always encapsulate the entire generated Markdown output inside a strict outer fence of exactly 10 backticks (markdown at the very beginning and at the very end).
+
+This ensures the chat UI renders a single continuous code block, allowing the user to safely and transparently use the standard "Copy" button.

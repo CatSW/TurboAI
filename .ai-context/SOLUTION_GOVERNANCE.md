@@ -1,7 +1,6 @@
 # TurboAI - Solution Governance
 
 ## Identity
-- TurboAiWorkingRoot: `C:/Repo/CatSW/TurboAI/`
 - DefaultChangeLogPath: `Documentation/`
 
 ## Active Plan

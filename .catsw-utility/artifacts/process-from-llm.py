@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.6 – 2026-08-16
+# Version 1.7 – 2026-08-18
+# T7.1: Supporto FromC-*.py → rinominato in FromLlm-*, eseguito dal flusso standard,
+#       poi (solo su successo) process-c-channel.cmd + move-to-history.cmd.
 # T6.4: Rimosso l'invocazione interna di move-to-history.py da run_context_bundler(),
 #       ora delegata esclusivamente al wrapper process-from-llm.cmd.
 
@@ -91,6 +93,8 @@ HISTORY_DIR = UTILITY_ROOT / "history"
 
 CONTEXT_BUNDLER_EXE = ARTEFACTS_ROOT / "ContextBundler.exe"
 PROCESS_ZIP_SCRIPT = ARTEFACTS_ROOT / "process-zip-and-scripts-from-llm.py"
+PROCESS_C_CHANNEL_CMD = UTILITY_ROOT / "process-c-channel.cmd"
+MOVE_TO_HISTORY_CMD = UTILITY_ROOT / "move-to-history.cmd"
 
 # ---------------------------------------------------------------------------
 # Downloads + logging
@@ -135,8 +139,18 @@ RE_FROMLLM = re.compile(
     re.IGNORECASE,
 )
 
+RE_FROMC = re.compile(
+    r"FromC[-_ ]+([^\"'<>|?*]+\.py)",
+    re.IGNORECASE,
+)
+
 
 def sanitize_name(original_name: str) -> str | None:
+    # FromC-*.py → normalizzato a FromLlm-*.py (riusa il flusso standard)
+    m = RE_FROMC.search(original_name)
+    if m:
+        return f"FromLlm-{m.group(1)}"
+
     m = RE_FROMLLM.search(original_name)
     if m:
         return f"FromLlm-{m.group(1)}"
@@ -155,6 +169,11 @@ def is_context_request(name: str) -> bool:
 def is_fromllm(name: str) -> bool:
     lower = name.lower()
     return lower.startswith("fromllm-") and lower.endswith((".py", ".ps1", ".zip"))
+
+
+def is_fromc_original(original_name: str) -> bool:
+    """True se il nome originale (prima del rename) era un FromC-*.py."""
+    return RE_FROMC.search(original_name) is not None
 
 
 def latest_by_mtime(paths: list[Path]) -> Path | None:
@@ -216,12 +235,31 @@ def run_process_zip_and_scripts() -> int:
     return result.returncode
 
 
+def run_cmd_file(cmd_path: Path) -> int:
+    """Esegue un .cmd in UTILITY_ROOT e restituisce l'exit code."""
+    if not cmd_path.exists():
+        log(f"ERRORE: {cmd_path.name} non trovato in {cmd_path.parent}")
+        return 1
+    log(f"==> Lancio {cmd_path.name}...")
+    try:
+        result = subprocess.run(
+            ["cmd.exe", "/c", str(cmd_path)],
+            cwd=str(UTILITY_ROOT),
+            check=False,
+            env=utf8_child_env(),
+        )
+        return result.returncode
+    except Exception as exc:
+        log(f"ERRORE durante l'esecuzione di {cmd_path.name}: {exc}")
+        return 1
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main() -> int:
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("=== process-from-llm v1.6 (Python) - orchestratore unificato ===")
+    log("=== process-from-llm v1.7 (Python) - orchestratore unificato + FromC ===")
     log(f"Esecuzione avviata: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"Solution Root : {SOLUTION_ROOT}")
     log(f"Utility Root  : {UTILITY_ROOT}")
@@ -239,15 +277,22 @@ def main() -> int:
         return 1
 
     if not candidates:
-        err = f"Nessun file context-request-*.md o FromLlm-*.{{py|ps1|zip}} trovato in {DOWNLOADS_PATH}."
+        err = (
+            f"Nessun file context-request-*.md, FromLlm-*.{{py|ps1|zip}} "
+            f"o FromC-*.py trovato in {DOWNLOADS_PATH}."
+        )
         log(f"ERRORE: {err}")
         return 1
 
     latest = latest_by_mtime(candidates)
     assert latest is not None
-    log(f"==> File più recente selezionato: {latest.name}")
+    original_name = latest.name
+    log(f"==> File più recente selezionato: {original_name}")
 
-    clean_name = sanitize_name(latest.name)
+    # Flag: era un FromC-*.py? (serve per le post-azioni)
+    was_fromc = is_fromc_original(original_name)
+
+    clean_name = sanitize_name(original_name)
     assert clean_name is not None
 
     working_file = latest
@@ -256,7 +301,10 @@ def main() -> int:
         if dest.exists():
             log(f"WARNING: destinazione di rename già esistente ({dest.name}), sovrascrivo.")
             dest.unlink()
-        log(f"WARNING: nome adornato rilevato → rinomino '{latest.name}' → '{clean_name}'")
+        if was_fromc:
+            log(f"==> FromC rilevato → rinomino '{original_name}' → '{clean_name}' (flusso FromLlm)")
+        else:
+            log(f"WARNING: nome adornato rilevato → rinomino '{original_name}' → '{clean_name}'")
         latest.rename(dest)
         working_file = dest
     else:
@@ -278,6 +326,23 @@ def main() -> int:
                 archive_to_history(working_file)
             else:
                 log("==> Il file non è più in Downloads (già gestito dallo script interno).")
+
+            # Post-azioni solo per FromC e solo su successo (fail-fast)
+            if was_fromc and exit_code == 0:
+                log("==> FromC: avvio post-azioni (process-c-channel + move-to-history)")
+                rc1 = run_cmd_file(PROCESS_C_CHANNEL_CMD)
+                if rc1 != 0:
+                    log(f"==> process-c-channel.cmd terminato con exit code {rc1} (fail-fast)")
+                    exit_code = rc1
+                else:
+                    rc2 = run_cmd_file(MOVE_TO_HISTORY_CMD)
+                    if rc2 != 0:
+                        log(f"==> move-to-history.cmd terminato con exit code {rc2}")
+                        exit_code = rc2
+                    else:
+                        log("==> Post-azioni FromC completate con successo")
+            elif was_fromc and exit_code != 0:
+                log("==> FromC: script fallito → post-azioni saltate (fail-fast)")
         else:
             log(f"ERRORE: nome non riconosciuto dopo sanitizzazione: {working_file.name}")
             exit_code = 1

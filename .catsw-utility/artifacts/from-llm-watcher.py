@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.1
+# Version 1.2
 # -*- coding: utf-8 -*-
 r"""
 from-llm-watcher.py
 Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
-Version 1.1
+Version 1.2
 
-Monitora %USERPROFILE%\Downloads e, quando arrivano file FromLlm-* o
-context-request-*, lancia l'unico orchestratore process-from-llm.cmd
+Monitora %USERPROFILE%\Downloads e, quando arrivano file FromLlm-*, FromC-*.py
+o context-request-*, lancia l'unico orchestratore process-from-llm.cmd
 nella cartella .catsw-utility.
 
 Lo spostamento effettivo dei file e la sanitizzazione dei nomi "adornati"
@@ -86,13 +86,25 @@ def is_fromllm(path: Path) -> bool:
     name = path.name
     # Accettiamo anche nomi leggermente adornati: basta che contengano il pattern
     lower = name.lower()
-    return (
+    # FromLlm-*.{zip,py,ps1} (anche adornati)
+    if (
         "fromllm-" in lower
         and any(lower.endswith(ext) or f"{ext}." in lower for ext in (".zip", ".py", ".ps1"))
     ) or (
         name.startswith("FromLlm-")
         and path.suffix.lower() in {".zip", ".py", ".ps1"}
-    )
+    ):
+        return True
+    # FromC-*.py (solo .py, segnale per post-azioni extra)
+    if (
+        "fromc-" in lower
+        and (lower.endswith(".py") or ".py." in lower)
+    ) or (
+        name.startswith("FromC-")
+        and path.suffix.lower() == ".py"
+    ):
+        return True
+    return False
 
 
 _CONTEXT_REQUEST_RE = re.compile(r"context-request[-_ ]+")
@@ -267,7 +279,7 @@ def run_with_polling() -> None:
 # Main
 # ---------------------------------------------------------------------------
 def main() -> int:
-    log.info("from-llm-watcher avviato (v1.1 - orchestratore unificato)")
+    log.info("from-llm-watcher avviato (v1.2 - supporto FromC-*.py)")
     log.info("Cartella monitorata : %s", DOWNLOADS)
     log.info("Cartella .catsw-utility: %s", CATSW_DIR)
     log.info("Cmd unificato       : %s", PROCESS_CMD.name)

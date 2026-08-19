@@ -12,7 +12,7 @@ set "PYTHONIOENCODING=utf-8"
 cd /d "%~dp0"
 
 echo.
-echo === process-c-channel v1.1 ===
+echo === process-c-channel v1.0 ===
 echo Working dir: %CD%
 echo.
 
