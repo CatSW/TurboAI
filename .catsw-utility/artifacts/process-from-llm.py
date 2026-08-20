@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.8 – 2026-08-20
+# Version 1.9 – 2026-08-20
 
 from __future__ import annotations
 
@@ -255,7 +255,7 @@ def run_cmd_file(cmd_path: Path) -> int:
 # ---------------------------------------------------------------------------
 def main() -> int:
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("=== process-from-llm v1.8 (Python) - orchestratore unificato + FromC ===")
+    log("=== process-from-llm v1.8 - orchestratore unificato + FromC ===")
     log(f"Esecuzione avviata: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"Solution Root : {SOLUTION_ROOT}")
     log(f"Utility Root  : {UTILITY_ROOT}")

@@ -1,7 +1,7 @@
 @echo off
 REM Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 REM Licensed under the MIT License. See LICENSE file in the project root for full license information.
-REM Version 1.1
+REM Version 1.2
 
 setlocal
 chcp 65001 >nul
@@ -55,7 +55,7 @@ if not exist "%TARGET_FILE%" (
 rem Verifica presenza di Windows Terminal (wt.exe)
 where wt.exe >nul 2>&1
 if %ERRORLEVEL% equ 0 (
-    start "" wt.exe --pos %WT_POS% --size %WT_SIZE% --title "tail-watch" cmd.exe /k "python \"%PYTHON_SCRIPT%\" \"%TARGET_FILE%\""
+    start "" wt.exe --pos %WT_POS% --size %WT_SIZE% --title "TurboAI" --suppressApplicationTitle cmd.exe /k "python \"%PYTHON_SCRIPT%\" \"%TARGET_FILE%\""
 ) else (
     start "tail-watch" cmd.exe /k "python \"%PYTHON_SCRIPT%\" \"%TARGET_FILE%\""
 )

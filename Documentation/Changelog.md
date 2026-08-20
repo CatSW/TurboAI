@@ -6,19 +6,26 @@ type: changelog
 product: Turbo-AI Tools
 version: 1.0
 license: MIT
-updated: 2026-08-19
+updated: 2026-08-20
 ---
 # Changelog TurboAI
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased]
+## [Unreleased] - 2026-08-20
 
+- implementata - M7 - T7.1 - T7.2 - M7 chiusa
 - implementata - M7 - T7.1 - Remove obsolete compatibility logic
 
 ### Changed
 
-- process-from-llm.py v1.8
+- skills a / b / c
+- from-llm-watcher.py v1.3
+- tail-watch.py v1.3
+- process-from-llm.py v1.7
+- tail-watch.cmd v1.2
+- from-llm-watcher.cmd v1.2
+- process-from-llm.py v1.9
 - process-zip-and-scripts-from-llm.py v1.6
 
 ## [1.0.5] - 2026-08-19

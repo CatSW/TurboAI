@@ -2,16 +2,15 @@
 title: skill-tools-use-channels-c
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 0.3.3
-updated: 2026-08-19
+version: 0.3.4
+updated: 2026-08-20
 audience: LLM
 mode: Channel C
 ---
 
 # TurboAI Tools: Channel C
 
-Channel C is for LLM web UIs that **cannot** produce downloadable files or ZIP links
-(Gemini free tier and similar).  
+Channel C is for LLM web UIs that **cannot** produce downloadable files or ZIP links. 
 The LLM emits a **Python generator script**.  
 The user saves it as `FromC-<description>.py` in the Downloads folder.  
 The prefix `FromC-` is mandatory because it automatically triggers the automated processing chain.  
@@ -34,6 +33,8 @@ because the chat is new.
 If the user corrects a proposal, stop the wrong path and apply the correction. `go` means
 execute the proposed next step without another confirmation. Stop only for a real decision,
 material ambiguity, unsafe action or missing non-recoverable context.
+
+Treat next_task as the complete contract for the current work; do not request the full plan or prior tasks to fill a gap. If a needed prior result is missing or under-specified, name the exact missing value and request only that.
 
 ## 2. Working style and user messages
 

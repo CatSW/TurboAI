@@ -2,8 +2,8 @@
 title: skill-tools-use-channels-b
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 2.1.2
-updated: 2026-08-15
+version: 2.1.3
+updated: 2026-08-20
 audience: LLM
 mode: Channel B
 ---
@@ -17,6 +17,8 @@ Channel B is the control tower and may also execute the full task when no Channe
 Project governance and the active plan override generic guidance. Read attached startup context before requesting more data. Do not repeat completed discovery or work merely because the chat is new.
 
 If the user corrects a proposal, stop the wrong path and apply the correction. `go` means execute the proposed next step without another confirmation. Stop only for a real decision, material ambiguity, unsafe action or missing non-recoverable context.
+
+Treat next_task as the complete contract for the current work; do not request the full plan or prior tasks to fill a gap. If a needed prior result is missing or under-specified, name the exact missing value and request only that.
 
 ## 2. Working style and user messages
 

@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.2
+# Version 1.3
 
+import json
 import os
+import re
+import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 # Configurazione UTF-8 e ANSI su Windows
 if sys.platform == "win32":
@@ -43,6 +47,82 @@ CLR_CYAN = "\033[96m"
 CLR_RESET = "\033[0m"
 
 BANNER = f"{CLR_GREEN}=================== [ NEW LOG DETECTED ] ==================={CLR_RESET}"
+
+# tail-watch.py vive in .../.catsw-utility/artifacts; il json di posizione
+# e get-win-pos.ps1 seguono la stessa convenzione di from-llm-watcher.py
+SCRIPT_DIR = Path(__file__).resolve().parent
+CATSW_DIR = SCRIPT_DIR.parent
+WIN_POS_CONFIG = CATSW_DIR / "tail-watch.json"
+GET_WIN_POS_SCRIPT = SCRIPT_DIR / "get-win-pos.ps1"
+
+_WT_POS_RE = re.compile(r'set "WT_POS=(-?\d+),(-?\d+)"')
+_WT_SIZE_RE = re.compile(r'set "WT_SIZE=(\d+),(\d+)"')
+
+
+def get_current_win_geometry(ps1_path: Path) -> Optional[tuple[int, int, int, int]]:
+    """Invoca get-win-pos.ps1 senza argomenti (modalità non interattiva) e
+    ne fa il parsing per ottenere (x, y, width, height) della finestra corrente."""
+    try:
+        result = subprocess.run(
+            ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(ps1_path)],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except Exception:
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    x = y = w = h = None
+    for line in result.stdout.splitlines():
+        m = _WT_POS_RE.search(line)
+        if m:
+            x, y = int(m.group(1)), int(m.group(2))
+            continue
+        m = _WT_SIZE_RE.search(line)
+        if m:
+            w, h = int(m.group(1)), int(m.group(2))
+
+    if None in (x, y, w, h):
+        return None
+    return x, y, w, h
+
+
+def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> None:
+    """Su Ctrl+C: se posizione/dimensione correnti differiscono da quelle salvate,
+    riscrive il json senza bisogno che l'utente lo cancelli o lo editi a mano."""
+    if not ps1_path.exists():
+        return
+
+    geometry = get_current_win_geometry(ps1_path)
+    if geometry is None:
+        return
+    x, y, w, h = geometry
+
+    current: dict = {}
+    if config_path.exists():
+        try:
+            with open(config_path, "r", encoding="utf-8-sig") as f:
+                current = json.load(f)
+        except (OSError, ValueError):
+            current = {}
+
+    if (
+        current.get("x-win-pos"),
+        current.get("y-win-pos"),
+        current.get("width"),
+        current.get("height"),
+    ) == (x, y, w, h):
+        return
+
+    new_config = {"x-win-pos": x, "y-win-pos": y, "width": w, "height": h}
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(new_config, f, indent=4)
+    except OSError:
+        pass
 
 def read_file_direct(file_path: Path, offset: int, last_header: bytes):
     """Legge i byte su disco. Rileva il reset se la dimensione cala o se l'header iniziale varia."""
@@ -127,7 +207,7 @@ def main():
         print(f"Errore: Il file '{file_path}' non esiste.")
         sys.exit(1)
 
-    print(f"{CLR_CYAN}=== TailWatch v1.1 su: {file_path.name} ==={CLR_RESET}")
+    print(f"{CLR_CYAN}=== tail-watch V1.3 su: {file_path.name} ==={CLR_RESET}")
     print(f"Avviso inattività: {inactivity_limit}s\n")
 
     last_offset, last_header = show_last_lines(file_path, 50)
@@ -167,6 +247,7 @@ def main():
 
         except KeyboardInterrupt:
             print(f"\n{CLR_CYAN}[TailWatch arrestato]{CLR_RESET}")
+            update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
             sys.exit(0)
 
 

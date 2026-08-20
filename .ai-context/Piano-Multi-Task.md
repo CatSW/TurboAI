@@ -697,7 +697,7 @@ già rimossi in una milestone precedente.
 dogfooding — uso continuativo di TurboAI su se stesso.
 
 ---
-<next_task>
+
 #### T7.2 - Update utility documentation and examples
 
 1. Target Paths
@@ -723,7 +723,7 @@ dogfooding — uso continuativo di TurboAI su se stesso.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-</next_task>
+
 ---
 
 #### T7.3 - Update future skill contract
@@ -754,7 +754,7 @@ dogfooding — uso continuativo di TurboAI su se stesso.
    - None beyond Target Paths.
 
 ---
-
+<next_task>
 ### M8 - Execution identity, execution mode and session overrides
 
 #### T8.1 - Extend governance with execution profile
@@ -786,7 +786,7 @@ dogfooding — uso continuativo di TurboAI su se stesso.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
 #### T8.2 - Add session-scoped execution-profile overrides

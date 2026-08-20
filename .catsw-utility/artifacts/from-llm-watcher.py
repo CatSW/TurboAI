@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.2
+# Version 1.3
 # -*- coding: utf-8 -*-
 r"""
 from-llm-watcher.py
 Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
-Version 1.2
+Version 1.3
 
 Monitora %USERPROFILE%\Downloads e, quando arrivano file FromLlm-*, FromC-*.py
 o context-request-*, lancia l'unico orchestratore process-from-llm.cmd
@@ -19,6 +19,7 @@ Questo watcher si limita a rilevare il file stabile e lanciare il .cmd.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -54,6 +55,17 @@ CATSW_DIR = SCRIPT_DIR.parent                         # .../.catsw-utility
 
 # Unico entry-point unificato (sostituisce i due vecchi .cmd)
 PROCESS_CMD = CATSW_DIR / "process-from-llm.cmd"
+
+# File da cui leggere canale (frontmatter mode:) e versione TurboAI (frontmatter versione-turbo-ai:)
+SKILL_USO_TOOLS = CATSW_DIR / "docs" / "skill-uso-tools.md"
+README_MD = CATSW_DIR / "Readme.md"
+
+# Config posizione/dimensione finestra (aggiornata su Ctrl+C se cambiata)
+WIN_POS_CONFIG = CATSW_DIR / "from-llm-watcher.json"
+GET_WIN_POS_SCRIPT = SCRIPT_DIR / "get-win-pos.ps1"
+
+CLR_CYAN = "\033[96m"
+CLR_RESET = "\033[0m"
 
 # Tempo di stabilizzazione (secondi) per considerare un file "completo"
 STABLE_SECONDS = 2.0
@@ -105,6 +117,114 @@ def is_fromllm(path: Path) -> bool:
     ):
         return True
     return False
+
+
+_FRONTMATTER_KV_RE = re.compile(r"^([\w-]+):\s*(.+?)\s*$")
+
+
+def read_frontmatter_field(path: Path, key: str) -> Optional[str]:
+    """Legge un campo dal blocco frontmatter YAML (--- ... ---) di un file markdown."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError:
+        return None
+
+    if not lines or lines[0].strip() != "---":
+        return None
+
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        m = _FRONTMATTER_KV_RE.match(line)
+        if m and m.group(1) == key:
+            return m.group(2).strip()
+
+    return None
+
+
+def get_channel_letter() -> str:
+    """Estrae la lettera canale da 'mode: Channel B' nel frontmatter di skill-uso-tools.md."""
+    value = read_frontmatter_field(SKILL_USO_TOOLS, "mode")
+    if not value:
+        return "?"
+    parts = value.split()
+    return parts[-1] if parts else "?"
+
+
+def get_turboai_version() -> str:
+    """Legge 'versione-turbo-ai:' dal frontmatter di Readme.md."""
+    return read_frontmatter_field(README_MD, "versione-turbo-ai") or "?"
+
+
+_WT_POS_RE = re.compile(r'set "WT_POS=(-?\d+),(-?\d+)"')
+_WT_SIZE_RE = re.compile(r'set "WT_SIZE=(\d+),(\d+)"')
+
+
+def get_current_win_geometry(ps1_path: Path) -> Optional[tuple[int, int, int, int]]:
+    """Invoca get-win-pos.ps1 senza argomenti (modalità non interattiva) e
+    ne fa il parsing per ottenere (x, y, width, height) della finestra corrente."""
+    try:
+        result = subprocess.run(
+            ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(ps1_path)],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except Exception:
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    x = y = w = h = None
+    for line in result.stdout.splitlines():
+        m = _WT_POS_RE.search(line)
+        if m:
+            x, y = int(m.group(1)), int(m.group(2))
+            continue
+        m = _WT_SIZE_RE.search(line)
+        if m:
+            w, h = int(m.group(1)), int(m.group(2))
+
+    if None in (x, y, w, h):
+        return None
+    return x, y, w, h
+
+
+def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> None:
+    """Su Ctrl+C: se posizione/dimensione correnti differiscono da quelle salvate,
+    riscrive il json senza bisogno che l'utente lo cancelli o lo editi a mano."""
+    if not ps1_path.exists():
+        return
+
+    geometry = get_current_win_geometry(ps1_path)
+    if geometry is None:
+        return
+    x, y, w, h = geometry
+
+    current: dict = {}
+    if config_path.exists():
+        try:
+            with open(config_path, "r", encoding="utf-8-sig") as f:
+                current = json.load(f)
+        except (OSError, ValueError):
+            current = {}
+
+    if (
+        current.get("x-win-pos"),
+        current.get("y-win-pos"),
+        current.get("width"),
+        current.get("height"),
+    ) == (x, y, w, h):
+        return
+
+    new_config = {"x-win-pos": x, "y-win-pos": y, "width": w, "height": h}
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(new_config, f, indent=4)
+    except OSError:
+        pass
 
 
 _CONTEXT_REQUEST_RE = re.compile(r"context-request[-_ ]+")
@@ -247,6 +367,7 @@ def run_with_watchdog() -> None:
             time.sleep(0.5)
     except KeyboardInterrupt:
         log.info("Arresto richiesto")
+        update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
     finally:
         observer.stop()
         observer.join()
@@ -273,13 +394,16 @@ def run_with_polling() -> None:
             time.sleep(1.0)
     except KeyboardInterrupt:
         log.info("Arresto richiesto")
+        update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main() -> int:
-    log.info("from-llm-watcher avviato (v1.2 - supporto FromC-*.py)")
+    channel = get_channel_letter()
+    version = get_turboai_version()
+    print(f"{CLR_CYAN}=== from-llm-watcher V1.3 Avviato - TurboAI V{version} su Canale {channel} ==={CLR_RESET}")
     log.info("Cartella monitorata : %s", DOWNLOADS)
     log.info("Cartella .catsw-utility: %s", CATSW_DIR)
     log.info("Cmd unificato       : %s", PROCESS_CMD.name)

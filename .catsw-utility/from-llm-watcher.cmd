@@ -1,12 +1,7 @@
 @echo off
-rem ===========================================================================
 rem from-llm-watcher.cmd
 rem Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
-rem Version 1.1
-rem
-rem Avvia from-llm-watcher.py all'interno di Windows Terminal (wt.exe)
-rem specificando posizione e dimensioni della finestra.
-rem ===========================================================================
+rem Version 1.2
 
 setlocal
 chcp 65001 >nul
@@ -54,7 +49,7 @@ rem Verifica presenza di Windows Terminal (wt.exe)
 where wt.exe >nul 2>&1
 if %ERRORLEVEL% equ 0 (
     rem Avvio tramite Windows Terminal con geometria e titolo corretti
-    start "" wt.exe --pos %WT_POS% --size %WT_SIZE% --title "from-llm-watcher" cmd.exe /k "python \"%PYTHON_SCRIPT%\""
+    start "" wt.exe --pos %WT_POS% --size %WT_SIZE% --title "TurboAI" --suppressApplicationTitle cmd.exe /k "python \"%PYTHON_SCRIPT%\""
 ) else (
     rem Fallback su console classica (cmd.exe) se wt.exe non è disponibile
     start "from-llm-watcher" cmd.exe /k "python \"%PYTHON_SCRIPT%\""
