@@ -637,7 +637,7 @@ move-to-history.py:
   - aggiornare la documentazione di turbo-ai per descrivere la nuova modalità di lavoro con il canale C (documenti `.catsw-utility/Readme.md` e `.catsw-utility/docs/TurboAI.md`)
   
 ---
-<next_task>
+
 ### M7 - Cleanup and documentation
 
 #### T7.1 - Remove obsolete compatibility logic
@@ -675,9 +675,29 @@ move-to-history.py:
 
 6. Extra Startup Files
    - None beyond Target Paths.
-</next_task>
----
+   
+##### ESITO
 
+**Fatto secondo spec**: rimossa `archive_script()` da
+`process-zip-and-scripts-from-llm.py` (dead code, zero chiamanti verificati).
+Nessun residuo di root-script discovery o fallback "newest-file" trovato —
+già rimossi in una milestone precedente.
+
+**Extra rispetto alla spec (lavoro estemporaneo emerso in sessione)**:
+- `process-from-llm.py` v1.8: aggiunto log del contenuto del context-request
+  in ToLlm.txt prima dell'esecuzione di ContextBundler.exe (che lo
+  consuma/sposta da Downloads), per mantenerne visibilità nel log anche dopo.
+- Adottato nuovo standard header script: rimossi i commenti changelog
+  inline (`# T-x.y: ...`); restano solo copyright, licenza, versione/data.
+  Il changelog per-task da ora si traccia qui nel piano (sezione ESITO di
+  ogni task), non più nei commenti del codice.
+
+**Verifica**: nessuna suite di regressione automatica ancora disponibile
+(ToolsTests/UnitTests in costruzione separata); regressione verificata via
+dogfooding — uso continuativo di TurboAI su se stesso.
+
+---
+<next_task>
 #### T7.2 - Update utility documentation and examples
 
 1. Target Paths
@@ -703,7 +723,7 @@ move-to-history.py:
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
 #### T7.3 - Update future skill contract

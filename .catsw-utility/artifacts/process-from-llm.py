@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.7 – 2026-08-18
-# T7.1: Supporto FromC-*.py → rinominato in FromLlm-*, eseguito dal flusso standard,
-#       poi (solo su successo) process-c-channel.cmd + move-to-history.cmd.
-# T6.4: Rimosso l'invocazione interna di move-to-history.py da run_context_bundler(),
-#       ora delegata esclusivamente al wrapper process-from-llm.cmd.
+# Version 1.8 – 2026-08-20
 
 from __future__ import annotations
 
@@ -259,7 +255,7 @@ def run_cmd_file(cmd_path: Path) -> int:
 # ---------------------------------------------------------------------------
 def main() -> int:
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("=== process-from-llm v1.7 (Python) - orchestratore unificato + FromC ===")
+    log("=== process-from-llm v1.8 (Python) - orchestratore unificato + FromC ===")
     log(f"Esecuzione avviata: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"Solution Root : {SOLUTION_ROOT}")
     log(f"Utility Root  : {UTILITY_ROOT}")
@@ -313,12 +309,25 @@ def main() -> int:
     exit_code = 0
     try:
         if is_context_request(working_file.name):
+            # Il contenuto va letto ORA: ContextBundler.exe consuma/sposta
+            # il file da Downloads durante la propria esecuzione, quindi
+            # dopo la chiamata non e' piu' garantito poterlo rileggere.
+            context_request_content: str | None = None
+            try:
+                context_request_content = working_file.read_text(encoding="utf-8")
+            except OSError as exc:
+                log(f"WARNING: impossibile leggere il contenuto di {working_file.name} prima dell'esecuzione: {exc}")
+
             log("==> Categoria A (context-request) → ContextBundler")
             exit_code = run_context_bundler()
             if working_file.exists():
                 archive_to_history(working_file)
             else:
                 log("==> Il file non è più in Downloads (gestito da ContextBundler).")
+
+            if context_request_content is not None:
+                log("==> Contenuto context-request:")
+                log(context_request_content)
         elif is_fromllm(working_file.name):
             log("==> Categoria B (FromLlm artifact) → process-zip-and-scripts-from-llm")
             exit_code = run_process_zip_and_scripts()

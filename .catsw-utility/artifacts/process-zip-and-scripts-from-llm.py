@@ -1,58 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.5
-"""
-Preleva lo zip di artefatti piu' recente scaricato dalla chat LLM, lo archivia
-in .catsw-utility/history con suffisso -YYYYMMDD-HHMMSS, lo estrae nella root
-della solution (sovrascrivendo eventuali file con lo stesso nome) ed esegue gli
-script FromLlm-*.ps1 / FromLlm-*.py trovati in .catsw-utility. Se non trova
-alcuno zip, cerca in Download lo script piu' recente (.py o .ps1), lo sposta
-in .catsw-utility/temp e lo esegue.
-
-Tutto l'output viene anche accodato in <Downloads>\\ToLlm.txt, per la
-visibilita' delle operazioni al canale LLM (es. TailWatcher).
-
-Convenzione per gli script FromLlm-*: devono limitarsi a print() su stdout/
-stderr. La scrittura su ToLlm.txt e' responsabilita' esclusiva di questo
-orchestratore (Tee): se uno script scrive anche lui direttamente sul file,
-ogni riga risulta duplicata.
-
-Dopo ogni esecuzione, lo script eseguito viene spostato in
-.catsw-utility/history/ (con prefisso timestamp), sia in caso di successo
-sia in caso di errore: nessuno script FromLlm-* resta mai in .catsw-utility
-al termine, ne' viene ritentato automaticamente al giro successivo. In caso
-di errore l'exit code non-zero e' comunque riportato in ToLlm.txt, quindi va
-corretto e riconsegnato con una nuova esecuzione se necessario.
-
-T4.1: dopo extractall i timestamp (mtime/atime) dei file estratti vengono
-impostati a now, cosi' una successiva build incrementale MSBuild/dotnet
-vede i sorgenti come modificati e non riusa assembly stale.
-
-T1.1: lo ZIP non viene piu' spostato in SOLUTION_ROOT ne' eliminato.
-Viene archiviato in .catsw-utility/history con -YYYYMMDD-HHMMSS prima di
-.extract e resta come copia di ispezione autorevole.
-
-T1.2: prima di extractall le entry vengono validate contro path assoluti,
-traversal (..) e destinazioni fuori dalla solution root. Entry non valide
-fermano l'esecuzione con errore esplicito (ZIP resta in history).
-
-T2.1: lo script operativo e' individuato esclusivamente dall'inventario ZIP
-(members). Si accettano 0 o 1 entry sotto .catsw-utility/temp/FromLlm-*.py|.ps1.
-Mai scan di temp per script stale; se >1 script dichiarato -> errore.
-
-T2.2: extractall diretto su SOLUTION_ROOT con overwrite; verifica esistenza
-dello script dichiarato dopo estrazione.
-
-T2.3: lo script estratto viene eliminato (unlink) in finally, successo o
-fallimento. La copia autorevole resta nel ZIP in history. Nessuna seconda
-copia archiviata in history.
-
-T2.4: ramo standalone (FromLlm-*.py/.ps1 senza ZIP) esplicito e separato:
-stage in temp, execute, unlink in finally. Rimosso il fallback orfani
-root/temp (stale script).
-"""
-
+# Version 1.6 - 2026-08-20
 from __future__ import annotations
 
 import os
@@ -157,14 +106,6 @@ def invoke_llm_script(script: Path, target_location: Path) -> int:
     return run_and_capture(cmd, cwd=target_location)
 
 
-def archive_script(script: Path) -> None:
-    HISTORY_DIR.mkdir(exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    dest = HISTORY_DIR / f"{timestamp}-{script.name}"
-    shutil.move(str(script), str(dest))
-    log(f"==> Archiviato in history: {dest.relative_to(SOLUTION_ROOT)}")
-
-
 def archive_zip_to_history(src_zip: Path) -> Path:
     """
     Sposta lo ZIP da Downloads a .catsw-utility/history aggiungendo
@@ -260,7 +201,7 @@ def find_zip_declared_script(members: list[str]) -> str | None:
 
 def main() -> int:
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("=== process-zip-and-scripts-from-llm v1.5 (Python) ===")
+    log("=== process-zip-and-scripts-from-llm v1.6 (Python) ===")
     log(f"Esecuzione avviata: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"Solution Root: {SOLUTION_ROOT}")
 

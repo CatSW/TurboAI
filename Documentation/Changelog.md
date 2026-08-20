@@ -14,6 +14,13 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+- implementata - M7 - T7.1 - Remove obsolete compatibility logic
+
+### Changed
+
+- process-from-llm.py v1.8
+- process-zip-and-scripts-from-llm.py v1.6
+
 ## [1.0.5] - 2026-08-19
 
 - lavoro su piano - TurboAI utility toolchain v3.0 - FromLlm ZIP retention and temp execution - e altro aggiunto in corso d'opera
@@ -47,6 +54,7 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 - implementata - M1 - Archive the ZIP before extraction
 
 ### Changed
+
 - tw.cmd v1.1
 - tw.py v1.2
 - from-llm-watcher.cmd v1.1
