@@ -14,6 +14,7 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased] - 2026-08-20
 
+- implementata - M8 - T8.1 - fatto assesment per T8.2 in .ai-context/ListaFileFromT8.1.md
 - implementata - M7 - T7.1 - T7.2 - M7 chiusa
 - implementata - M7 - T7.1 - Remove obsolete compatibility logic
 

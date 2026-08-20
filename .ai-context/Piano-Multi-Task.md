@@ -2,10 +2,9 @@
 title: Piano Multi-Task TurboAI - FromLlm ZIP retention and temp execution
 solution: TurboAI
 release_target: TurboAI utility toolchain v3.0
-updated: 2026-08-15
+updated: 2026-08-20
 status: IN_PROGRESS
 workflow: TDM 1.0
-active_initiative: FromLlm ZIP retention and temp execution
 ---
 
 ## 1. Objective
@@ -754,291 +753,15 @@ dogfooding — uso continuativo di TurboAI su se stesso.
    - None beyond Target Paths.
 
 ---
-<next_task>
-### M8 - Execution identity, execution mode and session overrides
 
-#### T8.1 - Extend governance with execution profile
-
-1. Target Paths
-   - `.ai-context/SOLUTION_GOVERNANCE.md`
-   - Governance parser/loader script *(discovery: same file(s) that already parse
-     `ContextBundler_output_base64` from T4.1 - confirm exact path)*
-
-2. Context & Dependencies
-   - Adds five new governance keys, independent from `ContextBundler_output_base64` (M4) and from each other's
-     resolution logic beyond precedence: `TurboAI_execution_mode` (`B_ONLY|A_PLUS_B`), `TurboAI_channel_b`,
-     `TurboAI_model_b`, `TurboAI_channel_a`, `TurboAI_model_a` (the last two only meaningful in `A_PLUS_B`).
-
-3. Implementation Scope
-   - Add the five keys to the governance parser/loader.
-   - Missing identity values resolve to the literal string `unspecified`.
-   - Trim surrounding whitespace on all values; reject empty values, newlines and control characters
-     explicitly (do not silently strip them).
-   - Keep execution identity, execution mode and the M4 ContextBundler Base64 mode fully independent - no
-     shared resolution code path.
-
-4. Acceptance Criteria
-   - All five keys parse correctly when present, absent, or containing rejected characters (explicit error).
-   - Independence from `ContextBundler_output_base64` verified (changing one does not affect the other).
-
-5. Delivery Artifacts
-   - Patch ZIP with the parser/loader change.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-</next_task>
----
-
-#### T8.2 - Add session-scoped execution-profile overrides
-
-1. Target Paths
-   - Same governance parser/loader confirmed in T8.1's delivery.
-
-2. Context & Dependencies
-   - Mirrors the session-override pattern already implemented for
-     `TURBOAI_CONTEXTBUNDLER_OUTPUT_BASE64` in T4.2 - same precedence style, new variable names.
-
-3. Implementation Scope
-   - Support environment overrides `TURBOAI_EXECUTION_MODE`, `TURBOAI_CHANNEL_B`, `TURBOAI_MODEL_B`,
-     `TURBOAI_CHANNEL_A`, `TURBOAI_MODEL_A`.
-   - Precedence: session override > governance value > `unspecified`.
-   - Propagate the effective values to child processes without persisting them back to governance.
-   - Log the effective value and its source (override vs. governance vs. default) for each of the five keys.
-
-4. Acceptance Criteria
-   - Each override independently verified, and all five together.
-   - Child process receives the effective values; `SOLUTION_GOVERNANCE.md` is never rewritten by this.
-   - Log output correctly attributes source per key.
-
-5. Delivery Artifacts
-   - Patch ZIP with the parser/loader change.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-#### T8.3 - Add Channel B mismatch guidance
-
-1. Target Paths
-   - `[FROM T8.1: exact path of the governance parser/loader]`
-   - Startup session output logic *(the same component that logs effective values in T8.2)*
-
-2. Context & Dependencies
-   - Channel B (the chat session itself) knows its own role/channel/model identity from context; this task
-     lets it compare that self-knowledge against the effective configuration resolved in T8.1/T8.2.
-
-3. Implementation Scope
-   - On mismatch between Channel B's known identity/mode and the effective resolved configuration, surface a
-     clear explanation of the difference and propose exact temporary PowerShell override commands (using the
-     T8.2 environment variables) to fix it for the session.
-   - Never modify governance silently and never execute the proposed overrides automatically - propose only.
-   - Do not claim an exact model version when the hosting channel does not expose one; state "unspecified" or
-     "not exposed by this channel" instead of guessing.
-
-4. Acceptance Criteria
-   - Mismatch scenario produces the explanation plus copy-pasteable override commands, no automatic action.
-   - No fabricated model version ever appears in the guidance.
-
-5. Delivery Artifacts
-   - Patch ZIP with the guidance logic.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-#### T8.4 - Preserve A+B responsibility boundaries
-
-1. Target Paths
-   - `[FROM T8.1: exact path of the governance parser/loader]`
-   - Benchmark report component *(discovery: locate the file/module that currently produces the benchmark
-     report, referenced by "make the execution profile available to the benchmark report" below)*
-
-2. Context & Dependencies
-   - `B_ONLY`: Channel B performs both governance and execution.
-   - `A_PLUS_B`: Channel B retains governance, context acquisition, verification and closure; Channel A
-     executes explicitly assigned tasks only.
-
-3. Implementation Scope
-   - Encode the two responsibility profiles above as documentation/contract, not just as data - the
-     distinction must be visible wherever execution mode is consulted.
-   - Make the resolved execution profile (mode + identities) available to the benchmark report without
-     requiring per-message automatic logging (i.e., read on demand, not logged on every turn).
-
-4. Acceptance Criteria
-   - Benchmark report can read the current execution profile on demand.
-   - No per-message automatic logging introduced.
-
-5. Delivery Artifacts
-   - Patch ZIP with the benchmark report integration.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-#### T8.5 - Test execution-profile resolution
-
-1. Target Paths
-   - Test harness location used in T5.4/T6.5 *(confirm exact path)*.
-   - All files touched in T8.1-T8.4.
-
-2. Context & Dependencies
-   - Full regression coverage for the execution-profile feature built across T8.1-T8.4.
-
-3. Implementation Scope
-   - Build fixtures/assertions for: `B_ONLY` resolution, `A_PLUS_B` resolution, governance-only values (no
-     overrides), each of the five overrides applied independently, all five together, missing/invalid values
-     (rejected per T8.1), child-process propagation, non-persistence to governance, mismatch guidance (T8.3),
-     Channel A identity optionality in `B_ONLY`, and independence from the M4 Base64 mode.
-
-4. Acceptance Criteria
-   - All cases above pass.
-
-5. Delivery Artifacts
-   - Patch ZIP with test files under the confirmed harness location.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-### M9 - Timestamped ToLlm snapshots
-
-*ASSUMPTION: the original plan only stated "Add full-date snapshot naming - Keep Downloads/ToLlm.txt as the
-live mutable output." The task below infers a scope consistent with that title and with the M1 archival
-pattern (timestamped copies into `.catsw-utility/history/`, live file untouched). Review before use.*
-
-#### T9.1 - Add timestamped ToLlm snapshot archival
-
-1. Target Paths
-   - `.catsw-utility/artifacts/process-from-llm.py` (or wherever `ToLlm.txt` is written - confirm exact
-     write site before editing)
-   - `.catsw-utility/history/`
-
-2. Context & Dependencies
-   - `Downloads/ToLlm.txt` must remain the live, mutable output consumed by the current channel - this task
-     adds an archival copy alongside it, it does not change how the live file is written or consumed.
-   - Follows the same timestamp-prefix and collision-handling convention established in T1.1/T6.2
-     (`YYYYMMDD-HHMMSS-` prefix, deterministic numeric suffix on same-second collision, never overwrite).
-
-3. Implementation Scope
-   - After each write of `Downloads/ToLlm.txt`, copy it into `.catsw-utility/history/` with a
-     `YYYYMMDD-HHMMSS-` prefixed name.
-   - Apply the same collision-handling rule as T1.1/T6.2.
-   - Do not alter how `Downloads/ToLlm.txt` itself is produced or consumed.
-
-4. Acceptance Criteria
-   - `Downloads/ToLlm.txt` remains live/mutable, unchanged in behavior.
-   - Each write produces exactly one correctly-named, non-overwriting snapshot in history.
-
-5. Delivery Artifacts
-   - Patch ZIP with the modified write path.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-### M10 - Optional manual significant-interaction template
-
-#### T10.1 - Document the optional free-form log
-
-1. Target Paths
-   - New file: `.catsw-utility/history/<date>-significant-user-llm-interactions.md`
-     *(note: corrects the `itereations`/`significativ` typos present in the original plan text; confirm final
-     filename with the user before creating it)*
-
-2. Context & Dependencies
-   - Purely a manual, user-owned, optional artifact - not read, written or required by any operational tool.
-   - The `.catsw-utility` -> `.turbo-ai` path migration is tracked separately in M11 and not yet done as of
-     this task; use the `.catsw-utility` path now. If M11 completes first, this task's path must be updated to
-     `.turbo-ai/history/...` before it is used - do not maintain two parallel path conventions.
-
-3. Implementation Scope
-   - Provide the agreed Markdown template for significant user-LLM interactions.
-   - Document that creation/maintenance is entirely manual and user-owned.
-   - Document the exclusions: routine "go" approvals, normal attachments, ordinary workflow transitions are
-     not logged here.
-   - State explicitly that this file is optional for normal consumer solutions.
-
-4. Acceptance Criteria
-   - Template documented with the corrected filename convention and the M11 path-dependency note above.
-
-5. Delivery Artifacts
-   - Documentation file (Markdown), delivered directly, no ZIP required.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-#### T10.2 - Keep all operational tools independent from the log
-
-1. Target Paths
-   - Discovery: search all operational components (`.catsw-utility/artifacts/`, wrapper `.cmd` files,
-     rotation, ContextBundler invocation points) for any reference to the filename pattern from T10.1.
-
-2. Context & Dependencies
-   - The log from T10.1 must remain purely manual/user-owned; no operational tool may depend on its presence,
-     absence or content.
-
-3. Implementation Scope
-   - Confirm (or fix, if found) that the watcher, startup session, ContextBundler invocation, rotation and
-     FromLlm processing never create, update, parse, count or classify this file.
-   - Confirm absence of the file never produces a warning or alters normal behavior.
-   - Confirm any existing instance of the file is preserved untouched as user-owned evidence (rotation must
-     not archive/delete it as if it were a stale artifact).
-   - Benchmark-specific analysis of this file's content, if any, belongs exclusively to a separate TurboAI
-     Benchmark solution - not to any tool in this repository.
-
-4. Acceptance Criteria
-   - No operational tool touches the file in any way, confirmed by the discovery search above.
-
-5. Delivery Artifacts
-   - If no fix was needed: a short confirmation report. If a fix was needed: patch ZIP plus the report.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-#### T10.3 - Verify non-interference
-
-1. Target Paths
-   - Test harness location used in T8.5 *(confirm exact path)*.
-   - All components confirmed/touched in T10.2.
-
-2. Context & Dependencies
-   - Regression coverage for the independence guarantee established in T10.2.
-
-3. Implementation Scope
-   - Test normal workflows with the T10.1 file absent, present, and present-but-malformed (arbitrary free-form
-     text).
-   - Confirm no operational tool opens or rewrites it in any of the three states.
-   - Confirm rotation (M6) and the M11 path migration, when it happens, preserve the file according to the
-     documented history policy from T10.1.
-
-4. Acceptance Criteria
-   - All three states pass with zero operational-tool interaction with the file.
-
-5. Delivery Artifacts
-   - Patch ZIP with test files under the confirmed harness location.
-
-6. Extra Startup Files
-   - None beyond Target Paths.
-
----
-
-### M11 - Migrate the operational folder to .turbo-ai
+### M8 - Migrate the operational folder to .turbo-ai
 
 *ASSUMPTION: the original plan only stated "Assess the full rename impact - Inventory executable and tracked
 operational references to .catsw-utility." Expanded below as a discovery/assessment task consistent with the
 M0/T5.1 pattern. This milestone likely needs a second implementation task after this one (not yet planned) -
 flagged at the end.*
 
-#### T11.1 - Assess the full rename impact
+#### T8.1 - Assess the full rename impact
 
 1. Target Paths
    - Discovery: search the entire repository (tracked files and, separately, executable-only references such
@@ -1068,49 +791,52 @@ flagged at the end.*
 6. Extra Startup Files
    - None beyond Target Paths.
 
-*Note: this milestone as originally scoped only covers assessment. A follow-up implementation task
-(T11.2, not yet defined) will be needed to actually perform the rename once T11.1's inventory exists - add it
-before T11.1 is closed, per the Closure Checklist.*
+PROPAGATE TO T8.2:
+  - Root .catsw-utility → rename + aggiornamento stringhe interne
+  - Nested (ContextBundler, ToolsTests, TurboAI-Benchmark): delete + replace con copia già convertita (dopo test root)
+  - Changelog.md: solo delta M8, storia precedente intatta
+  - skill-uso-tools.md: delete + rigenera via switch-skill.cmd dopo update tool-skillsets
+  - .gitignore: add .turbo-ai patterns subito; remove .catsw-utility patterns solo a fine conversione
 
 ---
+<next_task>
+#### T8.2 - switch to .turbo-ai
 
-### M12 - Final verification and closure
-
-*ASSUMPTION: the original plan only stated "Execute production workflows." Expanded below as a final
-end-to-end smoke test consistent with the milestone title "Final verification and closure". Review before
-use.*
-
-#### T12.1 - Real workflow smoke test
-
+FROM TO T8.1:
+  - Root .catsw-utility → rename + aggiornamento stringhe interne
+  - Nested (ContextBundler, ToolsTests, TurboAI-Benchmark): delete + replace con copia già convertita (dopo test root)
+  - Changelog.md: solo delta M8, storia precedente intatta
+  - skill-uso-tools.md: delete + rigenera via switch-skill.cmd dopo update tool-skillsets
+  - .gitignore: add .turbo-ai patterns subito; remove .catsw-utility patterns solo a fine conversione
+  
 1. Target Paths
-   - All wrappers and scripts under `.catsw-utility/` (or `.turbo-ai/` if M11 has completed by this point -
-     confirm current state before starting).
-   - `.ai-context/SOLUTION_GOVERNANCE.md`
-
+ FROM T8.1 Assesment report all the files to be updated from `.catsw-utility` to `.turbo-ai` 
+ Se non fornito come allegato generare una context-request per `.ai-context/ListaFileFromT8.1.md`
+   
 2. Context & Dependencies
-   - This is the closing verification for the entire initiative (M0-M11): ZIP retention, temp execution,
-     Base64 configurability, dynamic changelog, rotation, cleanup/documentation, execution profile, ToLlm
-     snapshots, the optional interaction log, and the folder migration if completed.
+   - fare controlli con rg per verificare di modificare ogni script e md .catsw-utility deve diventare .turbo-ai ovunque
 
 3. Implementation Scope
    - Run a real (not simulated) end-to-end cycle: produce a genuine patch ZIP, let the watcher/orchestrator
-     process it, confirm archival, execution, and cleanup all behave as specified across M1-M11.
-   - Run a real startup session and confirm the dynamic changelog fragment (M5) and rotation (M6) both fire
+     process it, confirm archival, execution, and cleanup all behave as specified in the skills.
+   - Run a real startup session and confirm the dynamic changelog fragment and rotation both fire
      correctly.
-   - Confirm UTF-8 end-to-end with the M3 sample string in a live run, not just the test harness.
+   - Confirm UTF-8 end-to-end with the in a live run.
 
 4. Acceptance Criteria
    - One full live cycle completes with no manual workaround needed anywhere in the chain.
 
 5. Delivery Artifacts
-   - Execution report (Markdown) documenting each step observed, pasted in chat.
+   - all the modified files with version incremented
+   - versione da rilasciare TurboAI 1.1 (aggiornare nel front matter di .turbo-ai/Readme.md)
+   - un lingotto d'oro a IK0VCK.
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
-### M13 - Per-task extra-files declaration in the plan
+### M9 - Per-task extra-files declaration in the plan
 
 **Note before rewriting this milestone: its purpose is now largely satisfied by FaseDefinizionePiano.md §1.2,
 section 6 ("Extra Startup Files"), already added to the plan-authoring standard itself. Consider whether M13
@@ -1119,7 +845,7 @@ of running last - the whole point of this milestone is to give every other task 
 extra context files, which would have helped M5-M12 above if it existed already. Left as the last milestone
 below only because that was its original position; recommend moving it, not implementing it here.**
 
-#### T13.1 - Per-task extra-files declaration mechanism
+#### T9.1 - Per-task extra-files declaration mechanism
 
 1. Target Paths
    - `.catsw-utility/artifacts/startup-llm-session.py` (or wherever the start-session bundle is assembled)
@@ -1147,9 +873,8 @@ below only because that was its original position; recommend moving it, not impl
 
 ---
 
-## Note on original §5/§6 (Delivery Rules / Resume Checklist)
+#### T9.1 - Fine del Piano
 
-Unchanged in substance, but §5's rule "Place the single operational verifier inside `.catsw-utility/temp` in
-every new patch ZIP generated after T2.1" and §6's references to `.catsw-utility` will both need a one-line
-update once M11 (folder migration) completes - add that as an explicit follow-up in M11's closure, per the
-Closure Checklist, so it is not forgotten.
+- muovere il piano in .ai-context/PianiCompletati con nome Piano-TurboAI-utility-toolchain-v3.0.md e front matter aggiornata
+
+
