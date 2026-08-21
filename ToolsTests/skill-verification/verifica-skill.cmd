@@ -1,27 +1,7 @@
 @echo off
 REM Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 REM Licensed under the MIT License. See LICENSE file in the project root for full license information.
-REM Version 1.3
-REM
-REM Changelog 1.3:
-REM - Lo scenario viene scelto PRIMA di avviare from-llm-watcher/tw (prima
-REM   venivano avviati con la .catsw-utility di skill-verification a
-REM   prescindere, anche per scenari con .catsw-utility isolata dentro
-REM   DIR\testdir: causava risoluzione dei path sulla root fisica sbagliata).
-REM - Se DIR\testdir\.catsw-utility esiste, viene usata quella (root fisica
-REM   isolata = TurboAiWorkingRoot dello scenario); altrimenti si usa quella
-REM   condivisa a livello di skill-verification.
-REM - from-llm-watcher e tw vengono sempre fermati e riavviati con la
-REM   .catsw-utility corretta per lo scenario scelto, invece di limitarsi a
-REM   verificare "e' gia' in esecuzione?" (non e' possibile distinguere in modo
-REM   affidabile, dalla sola CommandLine, se un'istanza gia' attiva punta alla
-REM   root giusta senza conoscere il contenuto di from-llm-watcher.cmd/tw.cmd).
-REM - Aggiunto promemoria: aprire una finestra incognito/privata della chat
-REM   LLM sotto test, per non alterare i test con la history di sessioni
-REM   precedenti.
-REM - Corretto "type null >" in "type nul >" (nul e' il device speciale;
-REM   "null" e' un nome file che non esiste e generava un errore a video).
-
+REM Version 1.4
 chcp 65001 >nul
 set PYTHONUTF8=1
 set PYTHONIOENCODING=utf-8
@@ -55,16 +35,16 @@ if not defined DIR (
   goto FINE
 )
 
-REM --- Determina quale .catsw-utility usare per questo scenario ---------
-REM Se lo scenario ha una .catsw-utility isolata dentro DIR\testdir (root
+REM --- Determina quale .turbo-ai usare per questo scenario ---------
+REM Se lo scenario ha una .turbo-ai isolata dentro DIR\testdir (root
 REM fisica = TurboAiWorkingRoot narrato nel bundle), usa quella. Altrimenti
 REM ricade su quella condivisa a livello di skill-verification.
-set "CATSW=%~dp0.catsw-utility"
-if exist "%~dp0%DIR%\testdir\.catsw-utility\from-llm-watcher.cmd" (
-    set "CATSW=%~dp0%DIR%\testdir\.catsw-utility"
+set "CATSW=%~dp0.turbo-ai"
+if exist "%~dp0%DIR%\testdir\.turbo-ai\from-llm-watcher.cmd" (
+    set "CATSW=%~dp0%DIR%\testdir\.turbo-ai"
 )
 echo.
-echo .catsw-utility usata per questo scenario: %CATSW%
+echo .turbo-ai usata per questo scenario: %CATSW%
 echo.
 
 REM --- Ferma eventuali istanze attive e riavvia con la root corretta ----

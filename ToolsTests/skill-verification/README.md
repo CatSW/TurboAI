@@ -3,8 +3,8 @@ title: Readme - Skill Verification (Test Harness TurboAI)
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 version: 1.1
-versione-skill-verification: 0.3.0
-updated: 2026-08-18
+versione-skill-verification: 0.4.0
+updated: 2026-08-21
 license: MIT
 ---
 # Skill Verification — test formali di interpretazione skill
@@ -70,7 +70,7 @@ Per ogni scenario:
 3. Salva l'output dell'LLM nella cartella dello scenario (nome libero,
    es. `output-grok.md`, oppure lo ZIP/script scaricato con il suo nome
    originale). Per lo scenario 01 non serve: `verify` trova da solo
-   l'ultima context-request-*.md/context-out-*.md in .catsw-utility.
+   l'ultima context-request-*.md/context-out-*.md in .turbo-ai.
 4. `python NN-scenario/run_test.py verify --llm <nome> ...` (argomenti
    specifici per scenario: `--output`/`--zip`/`--script`; lo scenario 01
    richiede solo `--llm`).
@@ -98,6 +98,6 @@ LLM gia' testati prima e confronta i report (comprese le versioni di
 TurboAI/skill/scenario registrate in ciascuno): un esito che peggiora e'
 un segnale di regressione introdotta dalla modifica alla skill.
 
-## .catsw-utility a livello di root skill-verification
+## .turbo-ai a livello di root skill-verification
 
 Serve per sviluppare evolvere e mantenere la solution skill-verification in dogfooding usando gli strumenti di turbo-ai

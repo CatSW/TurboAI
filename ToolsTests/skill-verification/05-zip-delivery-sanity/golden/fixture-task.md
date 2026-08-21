@@ -11,5 +11,5 @@
    - Sostituire la stringa nel file indicato, nessun altro cambiamento.
 
 5. Delivery Artifacts
-   - Patch ZIP FromLlm-*.zip con script operativo sotto .catsw-utility/temp/.
+   - Patch ZIP FromLlm-*.zip con script operativo sotto .turbo-ai/temp/.
 </next_task>

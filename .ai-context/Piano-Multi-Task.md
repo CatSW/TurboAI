@@ -799,7 +799,7 @@ PROPAGATE TO T8.2:
   - .gitignore: add .turbo-ai patterns subito; remove .catsw-utility patterns solo a fine conversione
 
 ---
-<next_task>
+
 ### T8.1_Estemporaneo - ContextBundler: session directive block + appsettings.json
 
 1. Target Paths
@@ -893,7 +893,7 @@ PROPAGATE TO T8.2:
 6. Extra Startup Files
    - `.catsw-utility/artifacts/extract-next-task.py` e gli altri script di generazione/utility emersi dalla discovery.
    - `ContextBundler.csproj` e i relativi file sorgente C# coinvolti nella lettura dei file di inizio sessione.
-   </next_task>
+
 ---
 
 #### T8.2 - switch to .turbo-ai
@@ -932,19 +932,24 @@ FROM TO T8.1:
 
 ---
 
-### M9 - Per-task extra-files declaration in the plan
+#### T8.3 - contollare lo switch to .turbo-ai
 
-**Note before rewriting this milestone: its purpose is now largely satisfied by FaseDefinizionePiano.md §1.2,
-section 6 ("Extra Startup Files"), already added to the plan-authoring standard itself. Consider whether M13
-is still needed as a separate implementation milestone, or whether it should be moved right after M0 instead
-of running last - the whole point of this milestone is to give every other task a way to declare its own
-extra context files, which would have helped M5-M12 above if it existed already. Left as the last milestone
-below only because that was its original position; recommend moving it, not implementing it here.**
+- verificare che una context-request continui a funzionare
+- generare un file zip di prova contenenente script con output su ToLlm.txt di prova per verificare che funzioni
+- chiedere utente di aggiornare il Changelog
+- aiutare utente a gestire la situazione git per mantenere la storia dopo il cambio di nome, bozza:
+  - git rm -r .catsw-utility
+  - git add .turbo-ai
+  - git commit -m "[turbo-ai-M8-T8.3] rename .catsw-utility → .turbo-ai"
+
+---
+<next_task>
+### M9 - Per-task extra-files declaration in the plan
 
 #### T9.1 - Per-task extra-files declaration mechanism
 
 1. Target Paths
-   - `.catsw-utility/artifacts/startup-llm-session.py` (or wherever the start-session bundle is assembled)
+   - `.turbo-ai/artifacts/startup-llm-session.py` (or wherever the start-session bundle is assembled)
    - `Piano-Multi-Task.md` (the plan template itself)
 
 2. Context & Dependencies
@@ -966,7 +971,7 @@ below only because that was its original position; recommend moving it, not impl
 
 6. Extra Startup Files
    - None beyond Target Paths.
-
+</next_task>
 ---
 
 #### T9.1 - Fine del Piano

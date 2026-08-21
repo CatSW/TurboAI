@@ -12,8 +12,12 @@ updated: 2026-08-21
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased] - 2026-08-21
+## [Unreleased]
 
+## [1.1.0] - 2026-08-21
+
+- implementata - M8 - T8.3 - contollare lo switch to .turbo-ai - M8 chiusa
+- implementata - M8 - T8.2 - switch root `.catsw-utility` → `.turbo-ai` (copy + string update, history-preserving rename pending)
 - implementata - M8 - T8.1_Estemporaneo + T8.1.2_Estemporaneo
 - implementata - M8 - T8.1 - fatto assesment per T8.2 in .ai-context/ListaFileFromT8.1.md
 - implementata - M7 - T7.1 - T7.2 - M7 chiusa
@@ -21,17 +25,32 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ### Changed
 
+- extract-latest-changelog.py v1.2
+- get-win-pos.ps1 1.1
+- switch-skill.py v1.1
+- move-to-history.py v1.2
+- genera_zip.py v1.1
+- unbundler.py v1.1
+- folder-bundler.ps1 v1.1
+- list-files.ps1 v1.3
+- skill-tools-use-channels-a-b_en.md v2.1.4
+- skill-tools-use-channels-b_en.md v2.1.4
+- skill-tools-use-channels-c_en.md v1.0.0
+- unbundler.cmd v1.2
+- process-from-llm.cmd v1.3
+- process-c-channel.cmd 1.1
+- aaa-startup-llm-session.cmd 1.5
+- purga-output.cmd v1.2
 - startup-llm-session.py v1.9
 - ContextBundler.exe v1.4
 - extract-next-task.py v1.1
 - skills a / b / c
 - from-llm-watcher.py v1.3
 - tail-watch.py v1.3
-- process-from-llm.py v1.7
 - tail-watch.cmd v1.2
 - from-llm-watcher.cmd v1.2
-- process-from-llm.py v1.9
-- process-zip-and-scripts-from-llm.py v1.6
+- process-from-llm.py v1.10
+- process-zip-and-scripts-from-llm.py v1.7
 
 ## [1.0.5] - 2026-08-19
 
@@ -76,7 +95,6 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 - process-from-llm.cmd v1.2
 - startup-llm-session.py v1.8 
 - process-from-llm.py v1.7
-- aaa-startup-llm-session.cmd v1.3
 - move-to-history.py v1.1 T6.1 + T6.2
 - TickTack.cmd v1.2
 - list-files.py v1.3
@@ -146,10 +164,11 @@ Sonnet5 (coda tra le gambe mode, un po' risentito):
 
 ### Added
 
-- folder con tools turbo-ai di riferimento in .catsw-utility
+- folder con tools turbo-ai di riferimento in .turbo-ai
 - folder associato di governo .ai-context per sviluppi futuri in dogfooding
 - folder Tools\ContextBundler con i sorgenti del tool ContextBundler.exe .NET 10 AOT
 
 ---  
 
 [@IK0VCK]: https://github.com/IK0VCK
+

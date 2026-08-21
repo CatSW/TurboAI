@@ -10,7 +10,7 @@ updated: 2026-08-09
 
 Radice di Turbo-AI
 
-in .catsw-utility ci sono gli script python/powershell ed eseguibili che possono essere usati in una nuova solution per lavorare con turbo-ai
+in .turbo-ai ci sono gli script python/powershell ed eseguibili che possono essere usati in una nuova solution per lavorare con turbo-ai
 in questo repo sono presenti anche i sorgenti .NET dei tool che verranno sviluppati in questo linguaggio
 quando si lavora con il TDM, oltre alla cartella nella root della solution, si deve creare una oppourtuna cartella di governo .ai-context
 

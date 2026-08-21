@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.2
+# Version 1.3
 """
 Validatori condivisi per gli scenari di skill-verification.
 Ogni funzione ritorna (ok: bool, dettagli: list[str]). Sono controlli
@@ -104,7 +104,7 @@ def check_fromllm_zip(zip_path: Path) -> tuple[bool, list[str]]:
     """
     Verifica il contratto FromLlm ZIP (skill-uso-tools.md §6):
     nome FromLlm-*.zip, nessuna directory contenitore, al massimo uno
-    script operativo sotto .catsw-utility/temp/FromLlm-*.py|.ps1, nessun
+    script operativo sotto .turbo-ai/temp/FromLlm-*.py|.ps1, nessun
     path assoluto/traversal, nessuna entry a dimensione zero.
     """
     issues: list[str] = []
@@ -125,10 +125,10 @@ def check_fromllm_zip(zip_path: Path) -> tuple[bool, list[str]]:
                     issues.append(f"Path assoluto o traversal sospetto: {name}")
                 if info.file_size == 0 and not name.endswith("/"):
                     issues.append(f"File a dimensione zero: {name}")
-                if re.match(r"^\.catsw-utility/temp/FromLlm-.*\.(py|ps1)$", name):
+                if re.match(r"^\.turbo-ai/temp/FromLlm-.*\.(py|ps1)$", name):
                     scripts.append(name)
                 elif name.endswith((".py", ".ps1")) and "temp/" in name:
-                    issues.append(f"Script fuori dalla posizione attesa .catsw-utility/temp/: {name}")
+                    issues.append(f"Script fuori dalla posizione attesa .turbo-ai/temp/: {name}")
             if len(scripts) > 1:
                 issues.append(f"Piu' di uno script operativo nello ZIP: {scripts}")
     except zipfile.BadZipFile:

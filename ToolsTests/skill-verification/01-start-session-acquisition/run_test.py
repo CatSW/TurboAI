@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.4
+# Version 1.5
 """
 Scenario 01 - Acquisizione start-session.
 Uso:
@@ -30,7 +30,7 @@ import validators  # noqa: E402
 import versioning  # noqa: E402
 
 SCENARIO = "01-start-session-acquisition"
-SCENARIO_VERSION = "1.4"
+SCENARIO_VERSION = "1.5"
 
 CHECKLIST = [
     "L'LLM ha identificato correttamente il task corrente (T1.1) senza chiederlo di nuovo?",
@@ -42,7 +42,7 @@ CHECKLIST = [
 
 
 def cmd_setup() -> None:
-    skill_src = HERE.parent / ".catsw-utility" / "docs" / "skill-uso-tools.md"
+    skill_src = HERE.parent / ".turbo-ai" / "docs" / "skill-uso-tools.md"
     skill_dst = HERE / "golden" / "skill-uso-tools.md"
     if skill_src.is_file():
         shutil.copy2(skill_src, skill_dst)
@@ -65,7 +65,7 @@ def cmd_setup() -> None:
     print("la chat LLM: questo scenario verifica solo fino a quel punto.")
     print()
     print("Esegui: python run_test.py verify --llm <nome>")
-    print("(context-request/context-out piu' recenti in .catsw-utility verranno trovati")
+    print("(context-request/context-out piu' recenti in .turbo-ai verranno trovati")
     print(" e copiati automaticamente nel report.)")
 
 
@@ -75,7 +75,7 @@ def _find_latest(pattern: str, folder: Path) -> Path | None:
 
 
 def cmd_verify(llm_name: str) -> None:
-    catsw_utility = HERE.parent / ".catsw-utility"
+    catsw_utility = HERE.parent / ".turbo-ai"
     context_request_path = _find_latest("context-request-*.md", catsw_utility)
     context_out_path = _find_latest("context-out-*.md", catsw_utility)
     if context_request_path is None or context_out_path is None:

@@ -3,7 +3,7 @@
 ## Obiettivo
 Verificare che l'LLM confezioni una patch ZIP conforme al contratto
 FromLlm (skill-uso-tools.md SS6): nome file, nessuna directory
-contenitore, un solo script operativo in .catsw-utility/temp/, nessun
+contenitore, un solo script operativo in .turbo-ai/temp/, nessun
 path assoluto/traversal, nessuna entry a dimensione zero.
 
 ## Materiale fornito (golden/)

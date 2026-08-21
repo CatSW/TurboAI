@@ -9,7 +9,7 @@ mancanti tramite context-request/context-out.
 
 ## Materiale fornito (testdir/.ai-context/)
 - SOLUTION_GOVERNANCE.md (solution fittizia "DemoWidget", TurboAiWorkingRoot
-  = testdir stesso — root fisica isolata con la propria .catsw-utility)
+  = testdir stesso — root fisica isolata con la propria .turbo-ai)
 - Piano-Multi-Task.md (contiene il blocco `<next_task>` T1.1, mirato e con
   Target Paths dichiarati relativi a testdir)
 - info_git.txt (log/status fittizi)

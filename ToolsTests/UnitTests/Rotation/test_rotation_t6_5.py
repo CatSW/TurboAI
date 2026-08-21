@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.0
+# Version 1.1
 """Suite di test di non-regressione per la rotazione history (Task T6.5)."""
 
 import shutil
@@ -34,24 +34,24 @@ class CleanTestResult(unittest.TextTestResult):
 
 
 def discover_utility_root(start: Path) -> Path:
-    """Risale l'albero delle cartelle per individuare la directory .catsw-utility live."""
+    """Risale l'albero delle cartelle per individuare la directory .turbo-ai live."""
     for candidate in (start, *start.parents):
-        target = candidate / ".catsw-utility"
+        target = candidate / ".turbo-ai"
         if target.is_dir():
             return target
-    raise RuntimeError(f"Impossibile trovare .catsw-utility risalendo da {start}")
+    raise RuntimeError(f"Impossibile trovare .turbo-ai risalendo da {start}")
 
 
 class TestRotationT65(unittest.TestCase):
 
     def setUp(self):
-        # 1. Individuazione dinamica della cartella .catsw-utility reale
+        # 1. Individuazione dinamica della cartella .turbo-ai reale
         self.live_utility = discover_utility_root(Path(__file__).resolve())
         self.repo_root = self.live_utility.parent
 
         # 2. Creazione sandbox di test isolata
         self.test_dir = Path(tempfile.mkdtemp(prefix="test_rotation_"))
-        self.utility_root = self.test_dir / ".catsw-utility"
+        self.utility_root = self.test_dir / ".turbo-ai"
         self.artefacts_dir = self.utility_root / "artifacts"
         self.temp_dir = self.utility_root / "temp"
         self.history_dir = self.utility_root / "history"

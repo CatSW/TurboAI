@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.0
+# Version 1.1
 """
 Ricava le versioni da registrare nei report a partire dal front-matter di
 file esistenti, senza mai chiederle interattivamente:
 
 - versione TurboAI: campo `versione-turbo-ai` nel front-matter di
-  <TurboAiWorkingRoot>/.catsw-utility/README.md
+  <TurboAiWorkingRoot>/.turbo-ai/README.md
 - versione skill Canale B: campo `version` nel front-matter del file skill
   (tipicamente la copia fresca di skill-uso-tools.md messa in golden/ da
   `run_test.py setup`)
 
-ASSUNZIONE DA CONFERMARE: il path esatto di .catsw-utility/README.md.
+ASSUNZIONE DA CONFERMARE: il path esatto di .turbo-ai/README.md.
 Se la versione TurboAI vive altrove, aggiorna solo TURBO_README_REL sotto.
 """
 
@@ -21,7 +21,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-TURBO_README_REL = Path(".catsw-utility") / "README.md"
+TURBO_README_REL = Path(".turbo-ai") / "README.md"
 TURBO_VERSION_KEY = "versione-turbo-ai"
 SKILL_VERSION_KEY = "version"
 
@@ -44,7 +44,7 @@ def _read_frontmatter(path: Path) -> dict[str, str]:
 
 
 def get_turbo_version(turbo_ai_working_root: Path) -> str:
-    """Legge 'versione-turbo-ai' dal front-matter di .catsw-utility/README.md.
+    """Legge 'versione-turbo-ai' dal front-matter di .turbo-ai/README.md.
     Ritorna stringa vuota se il file o il campo non ci sono (mai un'eccezione)."""
     readme = turbo_ai_working_root / TURBO_README_REL
     return _read_frontmatter(readme).get(TURBO_VERSION_KEY, "")

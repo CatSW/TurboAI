@@ -46,7 +46,7 @@ Per ognuno, prima di toccare codice:
 
 ### 02-discovery-then-request
 Task senza file dichiarati: l'LLM deve prima far eseguire
-`.catsw-utility\list-files.cmd` e farsi allegare `ls.txt`, poi produrre
+`.turbo-ai\list-files.cmd` e farsi allegare `ls.txt`, poi produrre
 una context-request mirata. Serve `testdir/` con una struttura di
 sorgente plausibile (piu' file di quanti servano davvero, per verificare
 che l'LLM non richieda tutto). Artefatti da copiare nel report: `ls.txt`
@@ -76,7 +76,7 @@ la context-request di follow-up, il context-out finale.
 L'LLM deve consegnare uno ZIP `FromLlm-*.zip` conforme al contratto
 (skill-uso-tools.md §6). Qui il tester scarica lo ZIP e lo lascia
 processare dal watcher/orchestratore locale, che lo sposta in
-`.catsw-utility/history/` aggiungendo `-YYYYMMDD-HHMMSS` prima di `.zip`.
+`.turbo-ai/history/` aggiungendo `-YYYYMMDD-HHMMSS` prima di `.zip`.
 `run_test.py verify` deve:
 - accettare un path (in history, non piu' nella cartella Download) allo
   ZIP processato;
