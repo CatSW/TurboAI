@@ -800,6 +800,102 @@ PROPAGATE TO T8.2:
 
 ---
 <next_task>
+### T8.1_Estemporaneo - ContextBundler: session directive block + appsettings.json
+
+1. Target Paths
+   - Discovery in `C:\Repo\CatSW\TurboAI\Tools\ContextBundler\` (progetto: `ContextBundler\ContextBundler.csproj`)
+   - rg mirato per:
+     - individuare dove viene assemblato/scritto l'output finale del bundle (es. cercare la stringa letterale che emette l'header `# CONTEXT BUNDLE` / `BundleFormatVersion`, o il footer `<<<END FILE>>>`, per risalire alla classe/metodo responsabile)
+     - verificare se esiste già un meccanismo di configurazione (cercare "appsettings", "IConfiguration", "*.json" nel progetto) per allinearsi a una convenzione esistente invece di introdurne una parallela
+   - `.ai-context/SOLUTION_GOVERNANCE.md` (per un'eventuale voce di governance su questa nuova personalizzazione, se pertinente)
+
+2. Context & Dependencies
+   - Nato dagli episodi 20-21/8: istruzioni operative sepolte nel corpo del bundle (dentro skill/governance) vengono applicate meno affidabilmente di un'istruzione posta in fondo al turno. Letteratura "lost in the middle" (ricerca 21/8) conferma: le posizioni di inizio/fine pesano più del centro nell'attenzione del modello, e per istruzioni d'azione la posizione più vicina al punto di generazione (fine del contesto) è la più efficace.
+   - **Vincolo esplicito (21/8):** il blocco va emesso **solo** quando la sorgente è una `context-request-start-session-*.md` — mai per una `context-request-<descrizione>.md` generica intra-sessione, dove aggiungerebbe rumore/token senza motivo (l'utente è già in flusso operativo, non serve un imperativo di "leggi tutto e agisci").
+   - Il discriminante è il nome del file di request in input (prefisso `start-session` vs altro) - verificare in discovery come/dove il tool già distingue (se lo fa) le due modalità di generazione, per riusare quel branch invece di introdurne uno nuovo parallelo.
+   - Blocco direttivo di default (inglese per coerenza con skill-uso-tools.md):
+```xml
+     <session_directive>
+     Read this bundle's governance, the active plan's <next_task> block, and the attached skill in full before asking for anything else.
+     If the state is clear (no material contradiction), proceed directly per the skill contract - do not wait for a "go" or ask for confirmation.
+     If something is missing or genuinely ambiguous, name the exact missing value or decision and request only that.
+     </session_directive>
+```
+   - Va emesso **in coda al bundle**, dopo l'ultimo `<<<END FILE>>>`, separato da riga vuota - non dentro il blocco di commenti `#` di intestazione (letto come metadato/contesto, non come istruzione - osservato 21/8).
+   - `appsettings.json`: permette di abilitare/disabilitare il blocco e di modificarne il testo senza dover ricompilare il tool. Se assente al primo avvio, ContextBundler lo crea con il testo e lo stato di default.
+
+3. Implementation Scope
+   - Individuare via discovery il punto esatto nel codice dove viene scritto l'output finale del bundle, e dove/come il tool distingue una request di tipo start-session da una generica.
+   - Iniettare l'emissione del blocco `<session_directive>` **solo nel branch start-session**, con stato e testo letti da configurazione.
+   - Gestione `appsettings.json`:
+     - Path accanto a eseguibile/progetto (confermare in discovery se esiste già altra convenzione nel progetto).
+     - Schema configurazione:
+       - `Enabled` (`bool`): abilita/disabilita l'emissione.
+       - `DirectiveLines` (`string[]` / array di righe): contiene il testo della direttiva per facilitare l'editing multi-riga nel JSON senza problemi di escaping dei newline.
+     - Se `appsettings.json` è assente al lancio, crearlo popolato con i default operativi (`Enabled: true` + testo standard sopra espresso come array di righe).
+     - Rete di sicurezza (Fallback): se il file JSON manca, è malformato o il nodo del testo è vuoto, il tool utilizza come fallback il testo cablato nel codice.
+
+4. Acceptance Criteria
+   - Un bundle generato da `context-request-start-session-*.md` contiene `<session_directive>` in coda, dopo l'ultimo `<<<END FILE>>>`, ben separato dal resto.
+   - Un bundle generato da una `context-request-<descrizione>.md` generica **non** contiene il blocco.
+   - Modifica del testo in `appsettings.json`: l'output generato riflette immediatamente il nuovo testo configurato senza richiedere ricompilazione del tool.
+   - `appsettings.json` assente: il tool crea il file con i default funzionanti ed emette il blocco regolarmente.
+   - `appsettings.json` con direttiva disabilitata (`Enabled: false`): il blocco non viene emesso in nessun caso, nemmeno per start-session.
+   - Fallback: in assenza di configurazione valida del testo, il tool emette il testo cablato di default senza fallire.
+   - Nessuna regressione sul formato bundle esistente (delimitatori, escaping, header) - verificata con un run reale su entrambi i tipi di request.
+
+5. Delivery Artifacts
+   - Patch ZIP con i sorgenti C# modificati/aggiunti e l'`appsettings.json` di default.
+   - Nota nel delivery su dove si trova il punto di iniezione trovato via discovery e perché.
+
+6. Extra Startup Files
+   - `ContextBundler.csproj` e i sorgenti sotto `Tools\ContextBundler\ContextBundler\` rilevanti al punto di iniezione trovato e al meccanismo di distinzione start-session/generica (da richiedere via context-request dopo la discovery, se non già nello startup bundle).
+
+---
+
+### T8.1.2_Estemporaneo - Gestione info start session in folder separato
+
+1. Target Paths
+   - Solution Root: `C:\Repo\CatSW\TurboAI\`
+   - Utility & Automation Scripts: `C:\Repo\CatSW\TurboAI\.catsw-utility\` (es. `.catsw-utility\artifacts\extract-next-task.py` e script correlati)
+   - Tool C#: `C:\Repo\CatSW\TurboAI\Tools\ContextBundler\` (progetto: `ContextBundler\ContextBundler.csproj`)
+   - Nuova cartella di destinazione: `.ai-context/info_start_session/`
+
+2. Context & Dependencies
+   - Attualmente i tre file generati all'inizio di ogni sessione (`info_git.txt`, `info_Changelog.md`, `info_next_task.md`) vengono creati direttamente nella radice della cartella `.ai-context/`.
+   - **Obiettivo:** Isolare questi file temporanei di sessione nella sottocartella dedicata `.ai-context/info_start_session/` per ridurre il disordine visivo nella radice di `.ai-context/`.
+   - **Workflow e ciclo di vita:** Il funzionamento e l'utilità dei file restano invariati; continuano ad essere sovrascritti ad ogni inizio sessione e ad essere usati sia come contesto per l'LLM sia per la verifica/ispezione manuale da parte dell'utente.
+   - Nessuna pulizia o cancellazione automatica dei vecchi file è richiesta dal task: si tratta esclusivamente di un cambio di percorso di lettura e scrittura.
+
+3. Implementation Scope
+   - **Discovery tramite `rg`:**
+     - Eseguire una ricerca mirata con `rg` su tutta la repository (in particolare sotto `.catsw-utility` e `Tools/ContextBundler`) per individuare tutti gli script, file C# e documentazione che referenziano `info_git`, `info_Changelog`, `info_next_task` o il pattern `info_*.md`.
+     - Verificare tra i risultati sia i punti di generazione/scrittura (es. `extract-next-task.py`) sia i punti di lettura/inclusione.
+   - **Aggiornamento Script di Generazione:**
+     - Modificare i percorsi di output degli script affinché scrivano i file in `.ai-context/info_start_session/`.
+     - Assicurarsi che gli script verifichino l'esistenza della sottocartella `info_start_session` e la creino automaticamente se assente prima della scrittura.
+   - **Aggiornamento ContextBundler (C#):**
+     - Aggiornare il codice C# di `ContextBundler` per cercare e leggere i tre file `info_*.md` dal nuovo percorso `.ai-context/info_start_session/` durante l'assemblaggio del bundle di start session.
+     - Garantire la creazione automatica della directory se assente al momento della risoluzione dei path.
+   - **Aggiornamento Documentazione/Skill:**
+     - Aggiornare eventuali riferimenti ai percorsi dei file `info_*.md` presenti nei file Markdown di documentazione o skill individuati via discovery.
+
+4. Acceptance Criteria
+   - Esecuzione degli script di avvio sessione: i tre file `info_git.txt`, `info_Changelog.md` e `info_next_task.md` vengono generati correttamente all'interno di `.ai-context/info_start_session/`.
+   - Se la directory `.ai-context/info_start_session/` non esiste, viene creata automaticamente senza sollevare errori.
+   - Un bundle generato per `start-session` da `ContextBundler` include i tre file leggendoli dal nuovo percorso `.ai-context/info_start_session/`.
+   - Nessun errore o regressione durante il flusso di avvio sessione e generazione bundle.
+
+5. Delivery Artifacts
+   - Patch ZIP con i file di script (`.py`, `.ps1`, `.cmd`), sorgenti C# di `ContextBundler` e documentazione modificati.
+   - Nota nel delivery con l'elenco completo dei file individuati tramite `rg` e aggiornati.
+
+6. Extra Startup Files
+   - `.catsw-utility/artifacts/extract-next-task.py` e gli altri script di generazione/utility emersi dalla discovery.
+   - `ContextBundler.csproj` e i relativi file sorgente C# coinvolti nella lettura dei file di inizio sessione.
+   </next_task>
+---
+
 #### T8.2 - switch to .turbo-ai
 
 FROM TO T8.1:
@@ -833,7 +929,7 @@ FROM TO T8.1:
 
 6. Extra Startup Files
    - None beyond Target Paths.
-</next_task>
+
 ---
 
 ### M9 - Per-task extra-files declaration in the plan

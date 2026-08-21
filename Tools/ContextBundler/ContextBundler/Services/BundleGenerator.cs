@@ -14,7 +14,9 @@ internal static class BundleGenerator
         string sourceListName,
         List<string> entries,
         Action<string> log,
-        bool toBase64 = false)
+        bool toBase64 = false,
+        bool sessionDirectiveEnabled = true,
+        string[]? sessionDirectiveLines = null)
     {
         var warnings = new Models.BundleWarnings();
         var bomFiles = new List<string>();
@@ -34,7 +36,17 @@ internal static class BundleGenerator
         }
 
         var header = BundleHeaderBuilder.Build(rootPath, sourceListName, bomFiles, warnings);
-        var bundleText = header + fileBlocks.ToString();
+
+        // T8.1_Estemporaneo: blocco <session_directive> in coda, solo per request
+        // start-session e solo se abilitato in appsettings.json. Testo da config
+        // (DirectiveLines) o fallback cablato. TrimEnd/newline espliciti per
+        // garantire una singola riga vuota di separazione dall'ultimo
+        // <<<END FILE>>>, indipendentemente dal whitespace finale di fileBlocks.
+        var directive = SessionDirectiveBuilder.Build(sourceListName, sessionDirectiveEnabled, sessionDirectiveLines);
+        var bundleText = directive.Length == 0
+            ? header + fileBlocks.ToString()
+            : header + fileBlocks.ToString().TrimEnd() + "\n\n" + directive + "\n";
+
         var includedCount = entries.Count - warnings.Missing.Count - warnings.SkippedBinary.Count;
 
         // T2.2: se richiesto, converte l'intero bundle in base64 (UTF-8 → base64 standard senza line-break)

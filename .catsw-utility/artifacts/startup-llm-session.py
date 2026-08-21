@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.8
-# T6.4: Rimosso lo Step 1 (invocazione interna di MoveToHistory.py), delegato
-#       interamente al wrapper CMD prima dell'avvio dello script.
+# Version 1.9
 
 from __future__ import annotations
 
@@ -209,7 +207,7 @@ def find_script(script_name: str, artefacts_root: Path) -> Path | None:
 def main() -> int:
     # Reset ToLlm.txt for this run
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("Executing startup-llm-session v1.7...")
+    log("Executing startup-llm-session v1.9...")
 
     # --- Path resolution ------------------------------------------------
     artefacts_root = Path(__file__).resolve().parent
@@ -220,10 +218,14 @@ def main() -> int:
     ai_context_dir = repo_root / ".ai-context"
     ai_context_dir.mkdir(exist_ok=True)
 
+    # T8.1.2: sottocartella dedicata per i file temporanei di start-session
+    info_start_session_dir = ai_context_dir / "info_start_session"
+    info_start_session_dir.mkdir(exist_ok=True)
+
     # NOTE (T6.4): L'archiviazione preventiva (Step 1) e' stata rimossa da qui
     # ed e' delegata nativamente al wrapper CMD 'aaa-startup-llm-session.cmd'.
 
-    # --- 1. Git info → .ai-context/info_git.txt -------------------------
+    # --- 1. Git info → .ai-context/info_start_session/info_git.txt ------
     try:
         git_log = run(["git", "log", "--oneline", "-5"], cwd=repo_root)
     except RuntimeError as exc:
@@ -239,15 +241,15 @@ def main() -> int:
         f"## git log --oneline -5\n{git_log.strip()}\n\n"
         f"## git status -sb\n{git_status.strip()}\n"
     )
-    info_git_path = ai_context_dir / "info_git.txt"
+    info_git_path = info_start_session_dir / "info_git.txt"
     info_git_path.write_text(info_git, encoding="utf-8")
 
     child_env = utf8_child_env()
 
-    # --- 2. Next task section → .ai-context/info_next_task.md -----------
+    # --- 2. Next task section → .ai-context/info_start_session/info_next_task.md
     plan_src = ai_context_dir / "Piano-Multi-Task.md"
     extract_next_task_script = find_script("extract-next-task.py", artefacts_root)
-    info_next_task_path = ai_context_dir / "info_next_task.md"
+    info_next_task_path = info_start_session_dir / "info_next_task.md"
 
     next_task_text = ""
     if not plan_src.exists():
@@ -272,11 +274,11 @@ def main() -> int:
             header = f"# Next task – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
             info_next_task_path.write_text(header + next_task_text, encoding="utf-8")
 
-    # --- 3. Latest Changelog section → .ai-context/info_Changelog.md ----
+    # --- 3. Latest Changelog section → .ai-context/info_start_session/info_Changelog.md
     changelog_path, changelog_source, changelog_raw = resolve_changelog_path(
         repo_root, next_task_text
     )
-    info_changelog_path = ai_context_dir / "info_Changelog.md"
+    info_changelog_path = info_start_session_dir / "info_Changelog.md"
 
     _CHANGELOG_FORMAT_HINT = (
         "DefaultChangeLogPath (in SOLUTION_GOVERNANCE.md) oppure OverrideChangeLogPath "
@@ -344,9 +346,9 @@ def main() -> int:
         "# Files to bundle",
         "",
         ".ai-context/SOLUTION_GOVERNANCE.md",
-        ".ai-context/info_git.txt",
-        ".ai-context/info_Changelog.md",
-        ".ai-context/info_next_task.md",
+        ".ai-context/info_start_session/info_git.txt",
+        ".ai-context/info_start_session/info_Changelog.md",
+        ".ai-context/info_start_session/info_next_task.md",
         ".catsw-utility/docs/skill-uso-tools.md",
     ]
     manifest_content = "\n".join(manifest_lines) + "\n"

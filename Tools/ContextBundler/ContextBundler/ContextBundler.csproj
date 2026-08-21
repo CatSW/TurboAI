@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>ContextBundler</RootNamespace>
-    <AssemblyVersion>1.3.0.0</AssemblyVersion>
-    <FileVersion>1.3.0.0</FileVersion>
+    <AssemblyVersion>1.4.0.0</AssemblyVersion>
+    <FileVersion>1.4.0.0</FileVersion>
     <Copyright>© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved. - Licensed under the MIT License</Copyright>
     <PublishAot>True</PublishAot>
   </PropertyGroup>
@@ -17,6 +17,12 @@
          internal (BundleGenerator, FileBlockBuilder, ecc.) senza invocare l'exe
          come sottoprocesso. -->
     <InternalsVisibleTo Include="ContextBundler.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- T8.1_Estemporaneo: appsettings.json (config enable/disable session_directive)
+         accanto all'eseguibile sia in build che in publish (incluso PublishAot). -->
+    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

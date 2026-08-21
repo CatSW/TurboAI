@@ -24,6 +24,11 @@
 // T3.2-prep: logica applicativa spostata in Cli/, Constants/, Models/, Services/
 // (vedi Services/BundleGenerator.cs per l'orchestrazione); questo file resta
 // l'unico con top-level statements, limitato a parsing CLI e I/O.
+//
+// T8.1_Estemporaneo: se il file di request e' una richiesta start-session
+// (context-request-start-session-*.md), il bundle riceve in coda un blocco
+// <session_directive> con testo e enable/disable letti da appsettings.json
+// (creato con default se assente; fallback cablato solo se config invalida).
 using ContextBundler.Cli;
 using ContextBundler.Constants;
 using ContextBundler.Services;
@@ -99,7 +104,18 @@ var entries = File.ReadAllLines(inputFile)
     .Distinct()
     .ToList();
 
-var result = BundleGenerator.Generate(rootPath, Path.GetFileName(inputFile), entries, Log, toBase64);
+// T8.1_Estemporaneo: Enabled + DirectiveLines da appsettings.json (creato con default se assente).
+// Fallback testo cablato solo se config manca/malformata/vuota.
+var (sessionDirectiveEnabled, sessionDirectiveLines) = SessionDirectiveConfig.Load(Log);
+
+var result = BundleGenerator.Generate(
+    rootPath,
+    Path.GetFileName(inputFile),
+    entries,
+    Log,
+    toBase64,
+    sessionDirectiveEnabled,
+    sessionDirectiveLines);
 
 if (toStdout)
     Console.Out.Write(result.BundleText);

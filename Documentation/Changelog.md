@@ -6,20 +6,24 @@ type: changelog
 product: Turbo-AI Tools
 version: 1.0
 license: MIT
-updated: 2026-08-20
+updated: 2026-08-21
 ---
 # Changelog TurboAI
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased] - 2026-08-20
+## [Unreleased] - 2026-08-21
 
+- implementata - M8 - T8.1_Estemporaneo + T8.1.2_Estemporaneo
 - implementata - M8 - T8.1 - fatto assesment per T8.2 in .ai-context/ListaFileFromT8.1.md
 - implementata - M7 - T7.1 - T7.2 - M7 chiusa
 - implementata - M7 - T7.1 - Remove obsolete compatibility logic
 
 ### Changed
 
+- startup-llm-session.py v1.9
+- ContextBundler.exe v1.4
+- extract-next-task.py v1.1
 - skills a / b / c
 - from-llm-watcher.py v1.3
 - tail-watch.py v1.3
