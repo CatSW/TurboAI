@@ -3,7 +3,7 @@ title: Readme - Manuale Utente & Architettura TurboAI
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 version: 1.3
-versione-turbo-ai: 1.1.0
+versione-turbo-ai: 1.1.1
 updated: 2026-08-21
 license: MIT
 ---

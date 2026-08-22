@@ -2,7 +2,7 @@
 title: skill-tools-use-channels-c
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 1.0.0
+version: 1.0.1
 updated: 2026-08-21
 audience: LLM
 mode: Channel C
@@ -188,7 +188,7 @@ CONTEXT_OUT_CONTENT = r"""# CONTEXT BUNDLE
 # BundleFormatVersion: 3
 # ContextBundler V1.3.0.0
 # Generated: YYYY-MM-DD HH:MM:SS
-<<<FILE path="..." bytes="..." sha256="...">>>
+<<<FILE bytes="..." path="..." sha256="...">>>
 ...
 <<<END FILE>>>
 """

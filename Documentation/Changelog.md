@@ -4,7 +4,7 @@ copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 type: changelog
 product: Turbo-AI Tools
-version: 1.0
+version: 1.1.1
 license: MIT
 updated: 2026-08-21
 ---
@@ -14,7 +14,20 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-08-21
+
+### Added
+
+- implementata - M9 - T9.1 - Per-task extra-files declaration mechanism - M9 chiusa - PLAN COMPLETED
+
+### Changed
+
+- skill-tools-use-channels-c_en.md v1.0.1
+- startup-llm-session.py v2.1
+
 ## [1.1.0] - 2026-08-21
+
+### Added
 
 - implementata - M8 - T8.3 - contollare lo switch to .turbo-ai - M8 chiusa
 - implementata - M8 - T8.2 - switch root `.catsw-utility` → `.turbo-ai` (copy + string update, history-preserving rename pending)
@@ -53,6 +66,8 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 - process-zip-and-scripts-from-llm.py v1.7
 
 ## [1.0.5] - 2026-08-19
+
+### Added
 
 - lavoro su piano - TurboAI utility toolchain v3.0 - FromLlm ZIP retention and temp execution - e altro aggiunto in corso d'opera
 - modifiche distribuite su più giorni con file che hanno subito cambi versione multipli
@@ -129,6 +144,8 @@ Sonnet5 (coda tra le gambe mode, un po' risentito):
 > Ok, è casa tua — la sezione 11 l'avete scritta voi, se decidete che per questo progetto il dogfooding è il prodotto (non solo il processo), è una scelta legittima. Segnalo solo una cosa pratica, non per fare il burocrate: se la direzione è questa, converrebbe aggiornare anche la Sezione 11 in skill-uso-tools.md, altrimenti ogni prossima sessione (mia o di Grok) continuerà a segnalartelo come violazione — la regola scritta e la prassi voluta finiranno per divergere. Se vuoi te la preparo come patch separata; per ora procedo con quello che hai chiesto.
 
 ## [1.0.3] - 2026-08-13
+
+### Added
 
 - ContextBundler con supporto output base64
 - tool con valore base64 cablato per prova

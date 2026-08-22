@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.9
+# Version 2.1
 
 from __future__ import annotations
 
@@ -115,6 +115,46 @@ def _is_plausible_relpath(value: str) -> bool:
     return v.replace("_", "").replace("-", "").isalnum()
 
 
+_NO_EXTRA_FILES_RE = re.compile(
+    r"^(none|nessuno|nessun|no|n/a|-)?(\s+beyond\s+target\s+paths|\s+oltre\s+ai\s+target\s+paths)?\.?$",
+    re.IGNORECASE,
+)
+
+
+def extract_extra_startup_files(next_task_text: str) -> list[str]:
+    if not next_task_text:
+        return []
+
+    pattern = re.compile(
+        r"(?:^|\n)[ \t]*(?:#+\s*|\d+\.\s*)?(?:Extra\s+Startup\s+Files|CONTEXT\s+REQUEST)[^\n]*\n(?P<body>.*?)(?=\n[ \t]*(?:\d+\.|\#+)[ \t]+|\Z)",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    extra_files: list[str] = []
+
+    for match in pattern.finditer(next_task_text):
+        body = match.group("body")
+        for line in body.splitlines():
+            line_str = line.strip()
+            if not line_str:
+                continue
+            cleaned = re.sub(r"^[ \t]*[-*+]\s*", "", line_str).strip()
+            cleaned = cleaned.strip("`'\"")
+
+            if not cleaned:
+                continue
+
+            if _NO_EXTRA_FILES_RE.match(cleaned):
+                continue
+
+            if _is_plausible_relpath(cleaned):
+                rel = cleaned.replace("\\", "/")
+                if rel not in extra_files:
+                    extra_files.append(rel)
+
+    return extra_files
+
+
 def _extract_override_changelog_path(next_task_text: str) -> str | None:
     for m in re.finditer(
         r"OverrideChangeLogPath\s*[:=]\s*[`'\"]?([^\s`'\"]+)[`'\"]?",
@@ -205,11 +245,9 @@ def find_script(script_name: str, artefacts_root: Path) -> Path | None:
 
 
 def main() -> int:
-    # Reset ToLlm.txt for this run
     TO_LLM_PATH.write_text("", encoding="utf-8")
-    log("Executing startup-llm-session v1.9...")
+    log("Executing startup-llm-session v2.0...")
 
-    # --- Path resolution ------------------------------------------------
     artefacts_root = Path(__file__).resolve().parent
     utility_root = artefacts_root.parent
     repo_root = discover_working_root(artefacts_root)
@@ -218,24 +256,19 @@ def main() -> int:
     ai_context_dir = repo_root / ".ai-context"
     ai_context_dir.mkdir(exist_ok=True)
 
-    # T8.1.2: sottocartella dedicata per i file temporanei di start-session
     info_start_session_dir = ai_context_dir / "info_start_session"
     info_start_session_dir.mkdir(exist_ok=True)
 
-    # NOTE (T6.4): L'archiviazione preventiva (Step 1) e' stata rimossa da qui
-    # ed e' delegata nativamente al wrapper CMD 'aaa-startup-llm-session.cmd'.
-
-    # --- 1. Git info → .ai-context/info_start_session/info_git.txt ------
     try:
         git_log = run(["git", "log", "--oneline", "-5"], cwd=repo_root)
     except RuntimeError as exc:
         git_log = f"{exc}"
-    
-    try:    
+
+    try:
         git_status = run(["git", "status", "-sb"], cwd=repo_root)
     except RuntimeError as exc:
         git_status = f"{exc}"
-        
+
     info_git = (
         f"# Git status – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
         f"## git log --oneline -5\n{git_log.strip()}\n\n"
@@ -246,7 +279,6 @@ def main() -> int:
 
     child_env = utf8_child_env()
 
-    # --- 2. Next task section → .ai-context/info_start_session/info_next_task.md
     plan_src = ai_context_dir / "Piano-Multi-Task.md"
     extract_next_task_script = find_script("extract-next-task.py", artefacts_root)
     info_next_task_path = info_start_session_dir / "info_next_task.md"
@@ -274,7 +306,6 @@ def main() -> int:
             header = f"# Next task – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
             info_next_task_path.write_text(header + next_task_text, encoding="utf-8")
 
-    # --- 3. Latest Changelog section → .ai-context/info_start_session/info_Changelog.md
     changelog_path, changelog_source, changelog_raw = resolve_changelog_path(
         repo_root, next_task_text
     )
@@ -291,10 +322,8 @@ def main() -> int:
     )
 
     if changelog_source == "unset" or changelog_path is None:
-        log(
-            "ERRORE: nessun changelog configurato.\n" + _CHANGELOG_FORMAT_HINT
-        )
-    else:        
+        log("ERRORE: nessun changelog configurato.\n" + _CHANGELOG_FORMAT_HINT)
+    else:
         if changelog_source == "invalid-governance":
             log(
                 f"ERRORE: DefaultChangeLogPath ha un valore non valido: {changelog_raw!r}\n"
@@ -316,7 +345,7 @@ def main() -> int:
                 present = [p.name for p in parent.iterdir() if p.is_file()]
                 hint = f" (directory presente; file trovati: {present or 'nessuno'})"
             elif not parent.exists():
-                hint = f" (anche la directory padre non esiste: {parent})"
+                hint = f" (anche la directory padre non existe: {parent})"
             log(f"ATTENZIONE: Changelog non trovato: {changelog_path}{hint}")
             info_changelog_path.write_text("# Changelog not found\n", encoding="utf-8")
         elif not extract_changelog_script or not extract_changelog_script.exists():
@@ -337,7 +366,6 @@ def main() -> int:
                 header = f"# Latest Changelog section – generated {datetime.now().isoformat(timespec='seconds')}\n\n"
                 info_changelog_path.write_text(header + result.stdout, encoding="utf-8")
 
-    # --- 4. Create lightweight manifest ---------------------------------
     timestamp = datetime.now().strftime("%Y%m%d-%H%M")
     manifest_name = f"context-request-start-session-{timestamp}.md"
     manifest_path = utility_root / manifest_name
@@ -351,10 +379,18 @@ def main() -> int:
         ".ai-context/info_start_session/info_next_task.md",
         ".turbo-ai/docs/skill-uso-tools.md",
     ]
+
+    extra_files = extract_extra_startup_files(next_task_text)
+    if extra_files:
+        log(f"Extra startup files trovati nel task attivo ({len(extra_files)}):")
+        for ef in extra_files:
+            log(f"  + {ef}")
+            if ef not in manifest_lines:
+                manifest_lines.append(ef)
+
     manifest_content = "\n".join(manifest_lines) + "\n"
     manifest_path.write_text(manifest_content, encoding="utf-8", newline="\n")
 
-    # --- 5. Run ContextBundler -------------------------------------------
     bundler = find_script("ContextBundler.exe", artefacts_root)
     if not bundler or not bundler.exists():
         log(f"ERRORE: ContextBundler.exe non trovato in {artefacts_root}")
@@ -385,4 +421,3 @@ if __name__ == "__main__":
     except Exception as exc:
         log(f"ERRORE: {exc}")
         sys.exit(1)
-
