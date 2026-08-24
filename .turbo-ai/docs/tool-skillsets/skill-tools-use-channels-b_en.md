@@ -2,8 +2,8 @@
 title: skill-tools-use-channels-b
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 2.1.4
-updated: 2026-08-21
+version: 2.2.0
+updated: 2026-08-24
 audience: LLM
 mode: Channel B
 ---
@@ -70,6 +70,14 @@ When recoverable context is missing:
    Allega context-out
 4. It is forbidden to replace the file with an inline code-block.
 5. If the user has already attached the requested file, do not regenerate the request.
+
+### 3.2 Extra startup files
+
+When defining or updating a task in the plan:
+- Declare known required context under `##### Extra Startup Files` using exact relative paths from TurboAiWorkingRoot.
+- Do not use wildcards or paths under `old.catsw-utility/`.
+- Never list automatic startup files (`.ai-context/SOLUTION_GOVERNANCE.md`, `.ai-context/info_start_session/info_*`, active skill under `.turbo-ai/docs/`).
+- Use standard context-requests only for context discovered during task execution.
 
 ### At startup:
 
@@ -173,6 +181,7 @@ Do not commit until verification is positive. Commit boundaries and messages fol
 At each task or milestone transition:
 - ask the user to move the sole `<next_task>` block to the next task, don't read the full plan;
 - ask the user to keep plan frontmatter, initiative status, active/historical assessment and startup context coherent;
+- ensure newly defined or updated tasks declare known context dependencies under `##### Extra Startup Files` (§3.2);
 - ask the user to update `SOLUTION_GOVERNANCE.md` when the operational state changes;
 - preserve permanent rules and historical context;
 - ensure a new session can resume haved saved all the needed info in SOLUTION_GOVERNANCE by the user (ask the user to update the file if needed!).
@@ -188,4 +197,3 @@ When changelog work is required, preserve all historical releases and add only t
 ## 12. Mandatory secondary check
 
 Before responding with an artifact, perform a second consistency check of names, paths, scope, syntax, encoding, line endings, ZIP inventory and the requested workflow. If the fix is deterministic, repair and deliver immediately; ask the user only when a decision is genuinely required.
-

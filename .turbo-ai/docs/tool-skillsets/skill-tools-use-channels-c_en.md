@@ -2,8 +2,8 @@
 title: skill-tools-use-channels-c
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 1.0.1
-updated: 2026-08-21
+version: 1.1.0
+updated: 2026-08-24
 audience: LLM
 mode: Channel C
 ---
@@ -262,9 +262,18 @@ At each task or milestone transition:
 - ask the user to update `SOLUTION_GOVERNANCE.md` when the operational state changes;
 - preserve permanent rules and historical context;
 - ensure a new session can resume having saved all needed info in SOLUTION_GOVERNANCE.
+- Ensure newly defined or updated tasks declare known context dependencies under `##### Extra Startup Files` (§10.1)
 
 Do not declare completion until code, verification, plan and governance describe the
 same state.
+
+### 10.1 Extra startup files
+
+When defining or updating a task in the plan:
+- Declare known required context under `##### Extra Startup Files` using exact relative paths from TurboAiWorkingRoot.
+- Do not use wildcards or paths under `old.catsw-utility/`.
+- Never list automatic startup files (`.ai-context/SOLUTION_GOVERNANCE.md`, `.ai-context/info_start_session/info_*`, active skill under `.turbo-ai/docs/`).
+- Use standard context-requests only for context discovered during task execution.
 
 ## 11. Documentation and changelog
 

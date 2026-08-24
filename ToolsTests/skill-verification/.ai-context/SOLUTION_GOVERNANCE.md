@@ -1,6 +1,5 @@
 # SOLUTION_GOVERNANCE — skill-verification
 
-- TurboAiWorkingRoot: C:\Repo\CatSW\TurboAI\ToolsTests\skill-verification
 - DefaultChangeLogPath: `Documentation/`
 
 ## Active Plan

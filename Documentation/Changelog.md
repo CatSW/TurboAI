@@ -4,15 +4,25 @@ copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 type: changelog
 product: Turbo-AI Tools
-version: 1.1.1
+version: 1.2.0 alpha
 license: MIT
-updated: 2026-08-21
+updated: 2026-08-24
 ---
 # Changelog TurboAI
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased]
+## [Unreleased]  - 2026-08-24
+
+### Added
+
+- implementato - [agosto-rosso-T1.1] aggiornate skill per il supporto alla funzionalia' introdotto in Turbo-AI 1.1.1 " Extra Startup Files"
+
+### Changed
+
+- skill-tools-use-channels-a-b_en.md v2.2.0
+- skill-tools-use-channels-b_en.md v2.2.0
+- skill-tools-use-channels-c_en.md v1.1.0
 
 ## [1.1.1] - 2026-08-21
 
