@@ -4,7 +4,7 @@ copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 type: changelog
 product: Turbo-AI Tools
-version: 1.2.0 alpha
+version: 1.2.0 
 license: MIT
 updated: 2026-08-24
 ---
@@ -12,15 +12,20 @@ updated: 2026-08-24
 
 Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/)
 
-## [Unreleased]  - 2026-08-24
+## [Unreleased] 
+
+## [1.2.0] - 2026-08-24
 
 ### Added
 
+- implementato - [agosto-rosso-T2.1] modifia gestione list-files
 - implementato - [agosto-rosso-T1.2] Posizioni iniziali sfalsate per le finestre dei watcher
 - implementato - [agosto-rosso-T1.1] aggiornate skill per il supporto alla funzionalia' introdotto in Turbo-AI 1.1.1 " Extra Startup Files"
 
 ### Changed
 
+- list-files.cmd v2.0
+- list-files.ps1 v2.0
 - from-llm-watcher.py v1.4
 - tail-watch.py v1.4.1
 - from-llm-watcher.cmd v1.3
