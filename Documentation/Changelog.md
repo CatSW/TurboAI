@@ -14,6 +14,14 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased] 
 
+## [1.2.1] - 2026-08-24
+
+### Changed
+ 
+- Readme.md
+- skill-tools-use-channels-a-b_en.md v2.2.1
+- skill-tools-use-channels-b_en.md v2.2.1
+
 ## [1.2.0] - 2026-08-24
 
 ### Added

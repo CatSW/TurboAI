@@ -3,7 +3,7 @@ title: Readme - Manuale Utente & Architettura TurboAI
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
 version: 1.3
-versione-turbo-ai: 1.2.0
+versione-turbo-ai: 1.2.1
 updated: 2026-08-24
 license: MIT
 ---
@@ -16,9 +16,9 @@ Guida rapida e operativa per l'utente all'uso degli strumenti di automazione e g
 
 ## 0. Prerequisiti
 
-- **Python v3.14.6** (o superiore - obbligatorio): verificare da prompt dei comandi con `python --version`.
-- **Git v2.54** (o superiore - obbligatorio): verificare con `git --version`.
-- **PowerShell 7.6.4** (o superiore - consigliata).
+- **Python v3.x** (obbligatorio - versione non mandatoria, Consigliata v3.10 o superiore): verificare da prompt dei comandi con `python --version`.
+- **Git v2.x** (obbligatorio non mandatoria, Consigliata v2.30+ o superiore): verificare con `git --version`.
+- **PowerShell 7.x** (obbligatorio - versione non mandatoria).
 - **ripgrep (`rg`) v15.1.0** (o superiore - consigliato): utilizzato dall'LLM per ricerche veloci nel codice.
 
 *Lettura metodologica consigliata:* [TurboAI Documento TDM](./.turbo-ai/docs/TurboAI.md)
@@ -43,16 +43,13 @@ Al primo avvio:
 
 ## 1. Inventario del repository (`ls.txt`)
 
-L'inventario dei file viene richiesto dall'LLM solo in caso di effettiva necessità per ottimizzare il consumo di token. Se richiesto:
+## 1. Inventario del repository e Discovery (`ls.txt` / `rg`)
 
-1. Aprire PowerShell nella cartella `.turbo-ai`.
-2. Eseguire lo script:
+L'inventario dei file serve unicamente quando la struttura del progetto non è nota all'LLM. Trattandosi di un approccio guidato dall'operatore (Man-In-The-Middle), hai pieno controllo sulla quantità di contesto fornita:
 
-```powershell
-.\list-files.cmd
-```
-
-3. Allegare in chat il file ls.txt generato.
+- **Esecuzione standard (`list-files.cmd`):** Apre un menu pre-filtrato e focalizzato sulle solution .NET/C#, escludendo automaticamente le cartelle di build (`bin`, `obj`) o dipendenze estere.
+- **Gestione progetti estesi/legacy:** Se la solution contiene troppi file, puoi inviare all'LLM un subset ridotto del file `ls.txt` o rifiutare il dump completo, indicandogli di proseguire tramite ricerche mirate con `rg`.
+- **Ricerche puntuali:** Se l'LLM richiede `list-files.cmd` ma sai già dove risiede il codice, puoi ignorare la richiesta e fornirgli direttamente i path dei file o l'output di un comando `rg`.
 
 ## 2. Esecuzione ricerche rapide con rg
 

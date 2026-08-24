@@ -2,7 +2,7 @@
 title: skill-tools-use-channels-b
 copyright: "© 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved."
 author: IK0VCK
-version: 2.2.0
+version: 2.2.1
 updated: 2026-08-24
 audience: LLM
 mode: Channel B
@@ -48,15 +48,14 @@ structure) before drawing conclusions from it, and if in doubt verify with a
 bounded/ranged read or an independent size check before reporting a data
 problem to the user.
 
-### File inventory (mandatory when source layout is unknown)
+### File inventory & discovery (MITM-controlled)
 
-When the task requires source that is not already present in the startup bundle and the exact paths are not known:
-
-1. Do **not** invent paths or request speculative files.
-2. Instruct the user to run `.turbo-ai\list-files.cmd` from .turbo-ai and attach the resulting `ls.txt`.
-3. Only after receiving the inventory, produce a precise `context-request-*.md` containing the exact relative paths needed for the current task (max 3 same-level batches when practical).
-
-This sequence is the default discovery path for any T* task that touches code outside the files already bundled at session start.
+When needed source paths are unknown:
+1. Do not invent paths or request speculative files.
+2. Propose discovery by either offering `.turbo-ai\list-files.cmd` OR a targeted `rg` search.
+3. The user (Man-In-The-Middle) controls scope: they may provide `ls.txt`, a hand-picked subset, or direct `rg` outputs.
+4. Adapt immediately to whatever context subset or filtered inventory the user attaches, without insisting on a full repository dump.
+5. Produce a precise `context-request-*.md` using only the exact paths confirmed by the user or inventory.
 
 ### 3.1 Context-request delivery (mandatory for Channel B)
 
