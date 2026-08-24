@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.3
+# Version 1.4
 r"""
 from-llm-watcher.py
 Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
-Version 1.3
+Version 1.4
 
 Monitora %USERPROFILE%\Downloads e, quando arrivano file FromLlm-*, FromC-*.py
 o context-request-*, lancia l'unico orchestratore process-from-llm.cmd
@@ -95,9 +95,7 @@ _pending_time: dict[Path, float] = {}     # path -> quando abbiamo visto quella 
 # ---------------------------------------------------------------------------
 def is_fromllm(path: Path) -> bool:
     name = path.name
-    # Accettiamo anche nomi leggermente adornati: basta che contengano il pattern
     lower = name.lower()
-    # FromLlm-*.{zip,py,ps1} (anche adornati)
     if (
         "fromllm-" in lower
         and any(lower.endswith(ext) or f"{ext}." in lower for ext in (".zip", ".py", ".ps1"))
@@ -106,7 +104,6 @@ def is_fromllm(path: Path) -> bool:
         and path.suffix.lower() in {".zip", ".py", ".ps1"}
     ):
         return True
-    # FromC-*.py (solo .py, segnale per post-azioni extra)
     if (
         "fromc-" in lower
         and (lower.endswith(".py") or ".py." in lower)
@@ -191,15 +188,15 @@ def get_current_win_geometry(ps1_path: Path) -> Optional[tuple[int, int, int, in
     return x, y, w, h
 
 
-def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> None:
+def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> bool:
     """Su Ctrl+C: se posizione/dimensione correnti differiscono da quelle salvate,
     riscrive il json senza bisogno che l'utente lo cancelli o lo editi a mano."""
     if not ps1_path.exists():
-        return
+        return False
 
     geometry = get_current_win_geometry(ps1_path)
     if geometry is None:
-        return
+        return False
     x, y, w, h = geometry
 
     current: dict = {}
@@ -216,14 +213,15 @@ def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> None:
         current.get("width"),
         current.get("height"),
     ) == (x, y, w, h):
-        return
+        return False
 
     new_config = {"x-win-pos": x, "y-win-pos": y, "width": w, "height": h}
     try:
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(new_config, f, indent=4)
+        return True
     except OSError:
-        pass
+        return False
 
 
 _CONTEXT_REQUEST_RE = re.compile(r"context-request[-_ ]+")
@@ -255,7 +253,6 @@ def launch_cmd(cmd: Path, source_file: Path) -> None:
 
     log.info("Lancio %s per %s", cmd.name, source_file.name)
 
-    # Nuova console visibile (Windows)
     creationflags = subprocess.CREATE_NEW_CONSOLE  # type: ignore[attr-defined]
 
     try:
@@ -271,9 +268,6 @@ def launch_cmd(cmd: Path, source_file: Path) -> None:
 
 
 def check_stability(path: Path) -> bool:
-    """
-    Restituisce True se il file esiste e la size è stabile da STABLE_SECONDS.
-    """
     if not path.exists() or not path.is_file():
         _pending.pop(path, None)
         _pending_time.pop(path, None)
@@ -288,19 +282,16 @@ def check_stability(path: Path) -> bool:
     prev_size = _pending.get(path)
 
     if prev_size is None or prev_size != size:
-        # Size cambiata → reset timer
         _pending[path] = size
         _pending_time[path] = now
         return False
 
-    # Size uguale → verifica se è passato abbastanza tempo
     if (now - _pending_time[path]) >= STABLE_SECONDS:
         return True
     return False
 
 
 def try_process(path: Path) -> None:
-    """Controlla e, se pronto, lancia il cmd appropriato."""
     cmd = get_target_cmd(path)
     if cmd is None:
         return
@@ -310,7 +301,6 @@ def try_process(path: Path) -> None:
 
     if check_stability(path):
         launch_cmd(cmd, path)
-        # Pulisco lo stato di stabilizzazione
         _pending.pop(path, None)
         _pending_time.pop(path, None)
 
@@ -324,7 +314,6 @@ def process_existing() -> None:
         for entry in DOWNLOADS.iterdir():
             if entry.is_file() and get_target_cmd(entry):
                 log.info("File esistente trovato: %s", entry.name)
-                # Forziamo la stabilizzazione immediata (file già scritto)
                 _pending[entry] = entry.stat().st_size
                 _pending_time[entry] = time.time() - STABLE_SECONDS - 1
                 try_process(entry)
@@ -360,13 +349,17 @@ def run_with_watchdog() -> None:
 
     try:
         while True:
-            # Periodicamente riproviamo i file ancora in pending
-            for p in list(_pending.keys()):
-                try_process(p)
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        log.info("Arresto richiesto")
-        update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
+            try:
+                for p in list(_pending.keys()):
+                    try_process(p)
+                time.sleep(0.5)
+            except KeyboardInterrupt:
+                update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
+                log.info(
+                    "Posizione e dimensione finestra aggiornata. "
+                    "Se si vuole terminare il Watcher premere la x del bordo in alto a destra."
+                )
+                time.sleep(1)
     finally:
         observer.stop()
         observer.join()
@@ -376,8 +369,8 @@ def run_with_polling() -> None:
     log.info("Watcher avviato (polling) su %s", DOWNLOADS)
     known: Set[Path] = set()
 
-    try:
-        while True:
+    while True:
+        try:
             current: Set[Path] = set()
             try:
                 for entry in DOWNLOADS.iterdir():
@@ -391,9 +384,13 @@ def run_with_polling() -> None:
 
             known = current
             time.sleep(1.0)
-    except KeyboardInterrupt:
-        log.info("Arresto richiesto")
-        update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
+        except KeyboardInterrupt:
+            update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
+            log.info(
+                "Posizione e dimensione finestra aggiornata. "
+                "Se si vuole terminare il Watcher premere la x del bordo in alto a destra."
+            )
+            time.sleep(1)
 
 
 # ---------------------------------------------------------------------------
@@ -402,10 +399,11 @@ def run_with_polling() -> None:
 def main() -> int:
     channel = get_channel_letter()
     version = get_turboai_version()
-    print(f"{CLR_CYAN}=== from-llm-watcher V1.3 Avviato - TurboAI V{version} su Canale {channel} ==={CLR_RESET}")
+    print(f"{CLR_CYAN}=== from-llm-watcher V1.4 Avviato - TurboAI V{version} su Canale {channel} ==={CLR_RESET}")
     log.info("Cartella monitorata : %s", DOWNLOADS)
     log.info("Cartella .turbo-ai: %s", CATSW_DIR)
     log.info("Cmd unificato       : %s", PROCESS_CMD.name)
+    log.info("💡 Per personalizzare posizione/dimensione: sposta e ridimensiona la finestra, poi premi Ctrl+C")
 
     if not DOWNLOADS.exists():
         log.error("Cartella Downloads non trovata: %s", DOWNLOADS)
@@ -427,4 +425,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

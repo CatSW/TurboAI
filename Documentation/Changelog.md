@@ -16,10 +16,16 @@ Redatto seguendo le convenzioni di [Keep a Changelog](https://keepachangelog.com
 
 ### Added
 
+- implementato - [agosto-rosso-T1.2] Posizioni iniziali sfalsate per le finestre dei watcher
 - implementato - [agosto-rosso-T1.1] aggiornate skill per il supporto alla funzionalia' introdotto in Turbo-AI 1.1.1 " Extra Startup Files"
 
 ### Changed
 
+- from-llm-watcher.py v1.4
+- tail-watch.py v1.4.1
+- from-llm-watcher.cmd v1.3
+- tail-watch.cmd v1.3
+- get-win-pos.ps1 v1.2
 - skill-tools-use-channels-a-b_en.md v2.2.0
 - skill-tools-use-channels-b_en.md v2.2.0
 - skill-tools-use-channels-c_en.md v1.1.0

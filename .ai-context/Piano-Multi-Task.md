@@ -14,7 +14,6 @@ workflow: TDM 1.0
 
 ## 3. Milestones and Tasks
 
-
 ## M1 - Skill: Extra Startup Files
 
 ### T1.1 - Documentare "Extra Startup Files" nelle skill (Canale A+B e C)
@@ -35,8 +34,6 @@ Rischio: R1
  - .turbo-ai/docs/tool-skillsets/skill-tools-use-channels-a-b_en.md
  - .turbo-ai/docs/tool-skillsets/skill-tools-use-channels-c_en.md
 
-
-<next_task>
 ### T1.2 - Posizioni iniziali sfalsate per le finestre dei watcher
 
 Obiettivo: al primo avvio le finestre dei watcher non devono aprirsi coperte da quella di
@@ -53,9 +50,10 @@ vedere la presenza della finestra sottostante. Nel output di aaa-startup-llm-ses
 ##### Extra Startup Files
 
 - .turbo-ai/aaa-startup-llm-session.cmd
-</next_task>
 
 ## M2 - Revisione list-files per solution operative
+</next_task>
+### T2.1 - modifia gestione list-files
 
 Obiettivo: il meccanismo di estrazione file, oggi cablato per lo sviluppo di TurboAI stesso,
 deve diventare generico per solution operative.
@@ -66,6 +64,11 @@ Scope:
   voce di menu col proprio nome; selezionandola si estraggono solo i file di quel sottoprogetto
 Rischio: R2
 
+##### Extra Startup Files
+
+- .turbo-ai/list-files.cmd
+- .turbo-ai/artifacts/list-files.ps1
+<next_task>
 ---
 
 ### M0 - Descrizione

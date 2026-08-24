@@ -1,11 +1,17 @@
 #!/usr/bin/env pwsh
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.1
+# Version 1.2
 
 param(
     [Parameter(Position = 0, Mandatory = $false)]
-    [string]$FilePath
+    [string]$FilePath,
+
+    [Parameter(Position = 1, Mandatory = $false)]
+    [int]$OffsetX = 0,
+
+    [Parameter(Position = 2, Mandatory = $false)]
+    [int]$OffsetY = 0
 )
 
 Add-Type -TypeDefinition @'
@@ -28,34 +34,34 @@ public struct RECT {
 }
 '@
 
-if ([string]::IsNullOrWhiteSpace($FilePath)) {
-    $hwnd = [Win]::GetForegroundWindow()
-    $rect = New-Object RECT
+$hwnd = [Win]::GetForegroundWindow()
+$rect = New-Object RECT
 
-    if ([Win]::GetWindowRect($hwnd, [ref]$rect)) {
+if ([Win]::GetWindowRect($hwnd, [ref]$rect)) {
+    try {
         $cols = $host.UI.RawUI.WindowSize.Width
         $rows = $host.UI.RawUI.WindowSize.Height
-
-        Write-Output 'rem Parametri di posizionamento e dimensione per Windows Terminal'
-        Write-Output "set `"WT_POS=$($rect.Left),$($rect.Top)`""
-        Write-Output "set `"WT_SIZE=$cols,$rows`""
+    } catch {
+        $cols = 110
+        $rows = 28
     }
-} else {
-    $name = [System.IO.Path]::GetFileNameWithoutExtension($FilePath)
-    Read-Host "${name}: posiziona e ridimensiona nella posizione desiderata e premi INVIO"
 
-    $hwnd = [Win]::GetForegroundWindow()
-    $rect = New-Object RECT
+    if ($cols -le 0) { $cols = 110 }
+    if ($rows -le 0) { $rows = 28 }
 
-    if ([Win]::GetWindowRect($hwnd, [ref]$rect)) {
-        $cols = $host.UI.RawUI.WindowSize.Width
-        $rows = $host.UI.RawUI.WindowSize.Height
+    $posX = [Math]::Max(0, $rect.Left + $OffsetX)
+    $posY = [Math]::Max(0, $rect.Top + $OffsetY)
 
+    if ([string]::IsNullOrWhiteSpace($FilePath)) {
+        Write-Output 'rem Parametri di posizionamento e dimensione per Windows Terminal'
+        Write-Output "set `"WT_POS=$posX,$posY`""
+        Write-Output "set `"WT_SIZE=$cols,$rows`""
+    } else {
         $resolvedPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath)
 
         $config = [ordered]@{
-            "x-win-pos" = $rect.Left
-            "y-win-pos" = $rect.Top
+            "x-win-pos" = $posX
+            "y-win-pos" = $posY
             "width"     = $cols
             "height"    = $rows
         }

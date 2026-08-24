@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Stefano Vesco (IK0VCK) - CatSW. All rights reserved.
 # Licensed under the MIT License. See LICENSE file in the project root for full license information.
-# Version 1.3
+# Version 1.4.1
 
 import json
 import os
@@ -48,8 +48,6 @@ CLR_RESET = "\033[0m"
 
 BANNER = f"{CLR_GREEN}=================== [ NEW LOG DETECTED ] ==================={CLR_RESET}"
 
-# tail-watch.py vive in .../.turbo-ai/artifacts; il json di posizione
-# e get-win-pos.ps1 seguono la stessa convenzione di from-llm-watcher.py
 SCRIPT_DIR = Path(__file__).resolve().parent
 CATSW_DIR = SCRIPT_DIR.parent
 WIN_POS_CONFIG = CATSW_DIR / "tail-watch.json"
@@ -90,15 +88,15 @@ def get_current_win_geometry(ps1_path: Path) -> Optional[tuple[int, int, int, in
     return x, y, w, h
 
 
-def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> None:
+def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> bool:
     """Su Ctrl+C: se posizione/dimensione correnti differiscono da quelle salvate,
     riscrive il json senza bisogno che l'utente lo cancelli o lo editi a mano."""
     if not ps1_path.exists():
-        return
+        return False
 
     geometry = get_current_win_geometry(ps1_path)
     if geometry is None:
-        return
+        return False
     x, y, w, h = geometry
 
     current: dict = {}
@@ -115,17 +113,18 @@ def update_win_pos_if_changed(config_path: Path, ps1_path: Path) -> None:
         current.get("width"),
         current.get("height"),
     ) == (x, y, w, h):
-        return
+        return False
 
     new_config = {"x-win-pos": x, "y-win-pos": y, "width": w, "height": h}
     try:
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(new_config, f, indent=4)
+        return True
     except OSError:
-        pass
+        return False
+
 
 def read_file_direct(file_path: Path, offset: int, last_header: bytes):
-    """Legge i byte su disco. Rileva il reset se la dimensione cala o se l'header iniziale varia."""
     try:
         flags = os.O_RDONLY
         if hasattr(os, "O_BINARY"):
@@ -134,13 +133,11 @@ def read_file_direct(file_path: Path, offset: int, last_header: bytes):
         try:
             size = os.lseek(fd, 0, os.SEEK_END)
 
-            # Legge l'header iniziale (proporzionato al vecchio header, min 64 byte)
             read_len = max(64, len(last_header))
             os.lseek(fd, 0, os.SEEK_SET)
             current_header = os.read(fd, read_len)
 
             was_reset = False
-            # Reset se: la dimensione è diminuita OR i primi byte non coincidono più con quanto letto in precedenza
             if size < offset or (offset > 0 and len(last_header) > 0 and not current_header.startswith(last_header)):
                 offset = 0
                 was_reset = True
@@ -159,7 +156,6 @@ def read_file_direct(file_path: Path, offset: int, last_header: bytes):
 
 
 def show_last_lines(file_path: Path, n: int = 50) -> tuple[int, bytes]:
-    """Mostra le ultime n righe e restituisce (size, header_bytes)."""
     try:
         flags = os.O_RDONLY
         if hasattr(os, "O_BINARY"):
@@ -207,8 +203,9 @@ def main():
         print(f"Errore: Il file '{file_path}' non esiste.")
         sys.exit(1)
 
-    print(f"{CLR_CYAN}=== tail-watch V1.3 su: {file_path.name} ==={CLR_RESET}")
-    print(f"Avviso inattività: {inactivity_limit}s\n")
+    print(f"{CLR_CYAN}=== tail-watch V1.4 su: {file_path.name} ==={CLR_RESET}")
+    print(f"Avviso inattività: {inactivity_limit}s")
+    print(f"{CLR_CYAN}💡 Per personalizzare posizione/dimensione: sposta e ridimensiona la finestra, poi premi Ctrl+C{CLR_RESET}\n")
 
     last_offset, last_header = show_last_lines(file_path, 50)
     last_update = time.time()
@@ -246,9 +243,13 @@ def main():
                     warning_active = True
 
         except KeyboardInterrupt:
-            print(f"\n{CLR_CYAN}[TailWatch arrestato]{CLR_RESET}")
             update_win_pos_if_changed(WIN_POS_CONFIG, GET_WIN_POS_SCRIPT)
-            sys.exit(0)
+            print(
+                f"\n{CLR_CYAN}Posizione e dimensione finestra aggiornata. "
+                f"Se si vuole terminare il Watcher premere la x del bordo in alto a destra.{CLR_RESET}\n",
+                flush=True,
+            )
+            time.sleep(1)
 
 
 if __name__ == "__main__":
